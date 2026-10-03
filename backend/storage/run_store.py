@@ -23,8 +23,6 @@ CREATE TABLE IF NOT EXISTS runs (
     user_id TEXT,
     user_name TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_runs_started_at ON runs(started_at);
-CREATE INDEX IF NOT EXISTS idx_runs_user_id ON runs(user_id);
 """
 
 
@@ -45,6 +43,11 @@ class RunStore:
                 pass
             try:
                 await db.execute("ALTER TABLE runs ADD COLUMN user_name TEXT")
+            except Exception:
+                pass
+            try:
+                await db.execute("CREATE INDEX IF NOT EXISTS idx_runs_started_at ON runs(started_at)")
+                await db.execute("CREATE INDEX IF NOT EXISTS idx_runs_user_id ON runs(user_id)")
             except Exception:
                 pass
             await db.commit()

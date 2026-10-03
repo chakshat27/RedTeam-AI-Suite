@@ -16,7 +16,7 @@ function formatCat(cat?: string | null) {
 export default function RunDashboard({ runId, onViewReport }: Props) {
   const [run, setRun] = useState<RedTeamRun | null>(null);
   const [events, setEvents] = useState<RunProgressEvent[]>([]);
-  const [showLog, setShowLog] = useState(true);
+  const [showLog, setShowLog] = useState<boolean | null>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
 
   // Poll for run state
@@ -47,12 +47,18 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
     return () => ws.close();
   }, [runId]);
 
+  const status = run?.status ?? "connecting";
+  const isComplete = status === "completed";
+  const isFailed = status === "failed";
+  const isRunning = status === "running" || status === "pending" || status === "connecting";
+  const effectiveShowLog = showLog !== null ? showLog : !isComplete;
+
   // Auto-scroll log
   useEffect(() => {
-    if (showLog) {
+    if (effectiveShowLog) {
       logEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [events, showLog]);
+  }, [events, effectiveShowLog]);
 
   // Build category progress map (merge WS events + REST results)
   const categoryProgress = new Map<string, { done: number; success: number; total: number }>();
@@ -90,11 +96,6 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
       });
     }
   }
-
-  const status = run?.status ?? "connecting";
-  const isComplete = status === "completed";
-  const isFailed = status === "failed";
-  const isRunning = status === "running" || status === "pending" || status === "connecting";
 
   const expectedTotalCases = (run?.categories_run.length ?? 0) * (run?.cases_per_category ?? 5);
   let completedCount = 0;
@@ -207,51 +208,49 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
         </div>
       </div>
 
-      {/* ── Live Scan Progress Bar ── */}
-      <div
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: 16,
-          padding: "18px 22px",
-          marginBottom: 20,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
-            {isRunning ? (
-              <Loader2 size={16} strokeWidth={2.2} className="animate-spin" style={{ color: "var(--accent)" }} />
-            ) : isComplete ? (
-              <CheckCircle2 size={16} strokeWidth={2.2} style={{ color: "var(--safe)" }} />
-            ) : (
-              <AlertCircle size={16} strokeWidth={2.2} style={{ color: "var(--critical)" }} />
-            )}
-            <span>
-              {isRunning
-                ? `Running Audit Probes: ${completedCount} / ${expectedTotalCases || '—'} Completed`
-                : isComplete
-                ? `Scan Finished — Evaluated ${completedCount} Probes`
-                : `Scan Failed`}
-            </span>
+      {/* ── Live Scan Progress Bar (Only during active execution) ── */}
+      {!isComplete && (
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: 16,
+            padding: "18px 22px",
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
+              {isRunning ? (
+                <Loader2 size={16} strokeWidth={2.2} className="animate-spin" style={{ color: "var(--accent)" }} />
+              ) : (
+                <AlertCircle size={16} strokeWidth={2.2} style={{ color: "var(--critical)" }} />
+              )}
+              <span>
+                {isRunning
+                  ? `Running Audit Probes: ${completedCount} / ${expectedTotalCases || '—'} Completed`
+                  : `Scan Failed`}
+              </span>
+            </div>
+
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
+              {progressPercent}%
+            </div>
           </div>
 
-          <div style={{ fontSize: 14, fontWeight: 700, color: isComplete ? "var(--safe)" : "var(--accent)" }}>
-            {progressPercent}%
+          {/* Outer bar */}
+          <div style={{ width: "100%", height: 8, borderRadius: 99, background: "var(--bg-secondary)", overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${progressPercent}%`,
+                height: "100%",
+                background: "var(--gradient-orange)",
+                transition: "width 0.4s ease",
+              }}
+            />
           </div>
         </div>
-
-        {/* Outer bar */}
-        <div style={{ width: "100%", height: 8, borderRadius: 99, background: "var(--bg-secondary)", overflow: "hidden" }}>
-          <div
-            style={{
-              width: `${progressPercent}%`,
-              height: "100%",
-              background: isComplete ? "var(--safe)" : "var(--gradient-orange)",
-              transition: "width 0.4s ease",
-            }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* ── Summary stats row (when complete) ── */}
       {isComplete && (
@@ -362,44 +361,92 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
         </div>
       )}
 
-      {/* ── Live Log Feed ── */}
+      {/* ── Security Audit Telemetry & Logs ── */}
       <div
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",
-          borderRadius: 14,
+          borderRadius: 16,
           overflow: "hidden",
           marginBottom: 20,
         }}
       >
-        <button
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "12px 16px",
-            background: "none",
-            border: "none",
-            color: "var(--text)",
-            cursor: "pointer",
-            fontSize: 13,
-            fontFamily: "inherit",
-            fontWeight: 600,
-          }}
-          onClick={() => setShowLog(!showLog)}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Terminal size={15} style={{ color: "var(--accent)" }} />
-            <span>Live Security Audit Log ({events.length} events)</span>
-          </div>
-          <span style={{ color: "var(--muted)", fontSize: 11 }}>
-            {showLog ? "▲ Hide Log" : "▼ Expand Log"}
-          </span>
-        </button>
+        {isComplete ? (
+          <div
+            style={{
+              padding: "16px 20px",
+              borderBottom: effectiveShowLog ? "1px solid var(--border)" : "none",
+              background: "var(--bg-secondary)",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: "var(--accent-subtle)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "var(--accent)",
+                }}
+              >
+                <Terminal size={16} />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+                  Audit Execution Telemetry
+                </div>
+                <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                  {totalCases} adversarial probes completed · {totalCases - vulnDetectedCount} defended · {vulnDetectedCount} vulnerabilities detected
+                </div>
+              </div>
+            </div>
 
-        {showLog && (
-          <div className="progress-log" style={{ borderRadius: 0, border: "none", borderTop: "1px solid var(--border)", padding: "14px 16px" }}>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowLog(!effectiveShowLog)}
+              style={{ fontSize: 11, padding: "5px 12px" }}
+            >
+              {effectiveShowLog ? "▲ Hide Raw Event Stream" : `▼ View Raw Event Stream (${events.length})`}
+            </button>
+          </div>
+        ) : (
+          <button
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 16px",
+              background: "none",
+              border: "none",
+              color: "var(--text)",
+              cursor: "pointer",
+              fontSize: 13,
+              fontFamily: "inherit",
+              fontWeight: 600,
+            }}
+            onClick={() => setShowLog(!effectiveShowLog)}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Terminal size={15} style={{ color: "var(--accent)" }} />
+              <span>Live Security Audit Log ({events.length} events)</span>
+            </div>
+            <span style={{ color: "var(--muted)", fontSize: 11 }}>
+              {effectiveShowLog ? "▲ Hide Log" : "▼ Expand Log"}
+            </span>
+          </button>
+        )}
+
+        {effectiveShowLog && (
+          <div className="progress-log" style={{ borderRadius: 0, border: "none", borderTop: isComplete ? "none" : "1px solid var(--border)", padding: "14px 16px" }}>
             {events.length === 0 && (
               <div className="progress-line" style={{ color: "var(--muted)" }}>
                 ⏳ Connecting to live event stream... Waiting for attack probes to execute.

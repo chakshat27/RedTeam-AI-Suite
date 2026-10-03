@@ -384,13 +384,13 @@ export default function AttackHelpModal({
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="help-external-link"
+                        className="help-external-link-card"
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span className="help-source-tag">{link.source}</span>
-                          <span>{link.title}</span>
+                        <div className="help-link-content">
+                          <span className="help-source-pill">{link.source}</span>
+                          <span className="help-link-title">{link.title}</span>
                         </div>
-                        <ExternalLink size={14} />
+                        <ExternalLink size={15} className="help-link-arrow" />
                       </a>
                     ))}
                   </div>

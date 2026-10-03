@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  Plus,
 } from "lucide-react";
 import LandingPage from "./components/LandingPage";
 import TargetConfig from "./components/TargetConfig";
@@ -114,20 +115,24 @@ function Sidebar({
           </div>
 
           <button
-            className="sidebar-toggle-btn hidden lg:flex"
-            onClick={onToggleCollapse}
-            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            data-tooltip={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-
-          <button
             className="sidebar-toggle-btn lg:hidden"
             onClick={onCloseMobile}
             title="Close sidebar"
           >
             <X size={16} />
+          </button>
+        </div>
+
+        {/* Collapse Button Row (one step down) */}
+        <div className="sidebar-collapse-row hidden lg:flex">
+          <button
+            className="sidebar-collapse-action-btn"
+            onClick={onToggleCollapse}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            data-tooltip={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+            {!isCollapsed && <span className="sidebar-collapse-text">Collapse Menu</span>}
           </button>
         </div>
 
@@ -334,15 +339,39 @@ function PageHeader({
             <span className="font-bold text-sm tracking-tight">AI Red Team Suite</span>
           </div>
         ) : (
-          <div className="page-header-breadcrumb">
-            <span>Workspace</span>
-            <span>/</span>
-            <span className="current">{titleMap[activeTab] || "Dashboard"}</span>
+          <div className="flex items-center gap-2.5">
+            <div className="page-header-module">
+              {activeTab === "configure" && <Settings2 size={14} className="text-accent" />}
+              {activeTab === "dashboard" && <Activity size={14} className="text-accent" />}
+              {activeTab === "report" && <FileWarning size={14} className="text-accent" />}
+              {activeTab === "history" && <History size={14} className="text-accent" />}
+              <span>{titleMap[activeTab] || "Security Console"}</span>
+              <span className="page-header-badge">Active Engine</span>
+            </div>
           </div>
         )}
       </div>
 
       <div className="page-header-right">
+        {!isLanding && user && (
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface border border-border text-xs text-muted">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Target Engine Ready</span>
+            </div>
+            {activeTab !== "configure" && (
+              <button
+                className="btn btn-primary btn-sm flex items-center gap-1.5"
+                onClick={() => navigate("/configure")}
+                title="Start a new adversarial scan"
+              >
+                <Plus size={14} />
+                <span>New Scan</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {isLanding && !user && (
           <button
             className="btn btn-primary btn-sm flex items-center gap-1.5"
