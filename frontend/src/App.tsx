@@ -26,6 +26,8 @@ import {
   Menu,
   X,
   Plus,
+  Bell,
+  ChevronDown,
 } from "lucide-react";
 import LandingPage from "./components/LandingPage";
 import TargetConfig from "./components/TargetConfig";
@@ -53,6 +55,7 @@ interface SidebarProps {
   onOpenHelp: () => void;
   onOpenGuide: () => void;
   onOpenLogoutConfirm: () => void;
+  onOpenAuth: (mode?: "login" | "signup") => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   isMobileOpen: boolean;
@@ -69,6 +72,7 @@ function Sidebar({
   onOpenHelp,
   onOpenGuide,
   onOpenLogoutConfirm,
+  onOpenAuth,
   isCollapsed,
   onToggleCollapse,
   isMobileOpen,
@@ -132,7 +136,6 @@ function Sidebar({
             data-tooltip={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
-            {!isCollapsed && <span className="sidebar-collapse-text">Collapse Menu</span>}
           </button>
         </div>
 
@@ -230,58 +233,23 @@ function Sidebar({
 
         {/* Sidebar Footer */}
         <div className="sidebar-footer">
-          {/* Theme Toggle */}
-          <div className="sidebar-theme-row">
-            {!isCollapsed && <span>{theme === "dark" ? "Dark Mode" : "Light Mode"}</span>}
-            <button
-              className="sidebar-toggle-btn"
-              onClick={toggleTheme}
-              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              data-tooltip={theme === "dark" ? "Light Mode" : "Dark Mode"}
-            >
-              {theme === "dark" ? (
-                <Sun size={15} strokeWidth={1.8} />
-              ) : (
-                <Moon size={15} strokeWidth={1.8} />
-              )}
-            </button>
-          </div>
-
-          {/* User Profile / Logout */}
-          {user && (
-            <div
-              className="sidebar-user cursor-pointer hover:border-border-strong transition-all"
-              onClick={onOpenLogoutConfirm}
-              title="Click to view session details & sign out"
-              data-tooltip={`Account Details & Sign Out (${user.full_name || user.email})`}
-            >
-              <div className="sidebar-user-avatar">
-                {user.full_name
-                  ? user.full_name.charAt(0).toUpperCase()
-                  : user.email.charAt(0).toUpperCase()}
-              </div>
-              {!isCollapsed && (
-                <div className="sidebar-user-info">
-                  <div className="sidebar-user-name">
-                    {user.full_name ? user.full_name : user.email}
-                  </div>
-                  <div className="sidebar-user-role text-accent">Sign Out...</div>
-                </div>
-              )}
-              {!isCollapsed && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenLogoutConfirm();
-                  }}
-                  className="sidebar-action-icon-btn"
-                  title="Sign Out"
-                >
-                  <LogOut size={15} strokeWidth={1.8} />
-                </button>
-              )}
+          <button
+            className="sidebar-nav-item"
+            onClick={() => {
+              if (user) {
+                onOpenLogoutConfirm();
+              } else {
+                onOpenAuth("login");
+              }
+            }}
+            title={user ? "Sign Out" : "Log In"}
+            data-tooltip={user ? "Sign Out" : "Log In"}
+          >
+            <div className="sidebar-nav-icon">
+              <LogIn size={18} strokeWidth={1.8} />
             </div>
-          )}
+            {!isCollapsed && <span className="sidebar-nav-label">Login</span>}
+          </button>
         </div>
       </aside>
     </>
@@ -296,6 +264,7 @@ interface PageHeaderProps {
   activeTab: string;
   onOpenMobileMenu: () => void;
   onOpenAuth: (mode?: "login" | "signup") => void;
+  onOpenLogoutConfirm: () => void;
 }
 
 function PageHeader({
@@ -303,10 +272,13 @@ function PageHeader({
   activeTab,
   onOpenMobileMenu,
   onOpenAuth,
+  onOpenLogoutConfirm,
 }: PageHeaderProps) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const titleMap: Record<string, string> = {
     configure: "Target Configuration",
@@ -339,56 +311,120 @@ function PageHeader({
             <span className="font-bold text-sm tracking-tight">AI Red Team Suite</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2.5">
-            <div className="page-header-module">
-              {activeTab === "configure" && <Settings2 size={14} className="text-accent" />}
-              {activeTab === "dashboard" && <Activity size={14} className="text-accent" />}
-              {activeTab === "report" && <FileWarning size={14} className="text-accent" />}
-              {activeTab === "history" && <History size={14} className="text-accent" />}
-              <span>{titleMap[activeTab] || "Security Console"}</span>
-              <span className="page-header-badge">Active Engine</span>
-            </div>
+          <div className="page-header-title">
+            <span>{titleMap[activeTab] || "Dashboard"}</span>
           </div>
         )}
       </div>
 
       <div className="page-header-right">
-        {!isLanding && user && (
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface border border-border text-xs text-muted">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Target Engine Ready</span>
-            </div>
-            {activeTab !== "configure" && (
-              <button
-                className="btn btn-primary btn-sm flex items-center gap-1.5"
-                onClick={() => navigate("/configure")}
-                title="Start a new adversarial scan"
-              >
-                <Plus size={14} />
-                <span>New Scan</span>
-              </button>
+        {/* Theme Switch Pill (Screenshot) */}
+        <button
+          onClick={toggleTheme}
+          className="theme-switch-pill"
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label="Toggle theme"
+        >
+          <div className={`theme-switch-knob ${theme === "dark" ? "knob-dark" : "knob-light"}`}>
+            {theme === "dark" ? (
+              <Moon size={12} strokeWidth={2.2} className="text-orange-400" />
+            ) : (
+              <Sun size={12} strokeWidth={2.2} className="text-amber-500" />
             )}
           </div>
-        )}
+          <div className="theme-switch-inactive">
+            {theme === "dark" ? (
+              <Sun size={12} strokeWidth={1.8} />
+            ) : (
+              <Moon size={12} strokeWidth={1.8} />
+            )}
+          </div>
+        </button>
 
-        {isLanding && !user && (
+        {/* Notification Bell with Badge (Screenshot) */}
+        <div className="relative">
+          <button
+            className="navbar-icon-btn"
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            title="System Notifications"
+          >
+            <Bell size={17} strokeWidth={1.8} />
+            <span className="navbar-badge-dot" />
+          </button>
+
+          {isNotifOpen && (
+            <div className="navbar-dropdown notif-dropdown">
+              <div className="dropdown-header">
+                <span className="font-semibold text-xs text-text">Notifications</span>
+                <span className="badge safe">Engine Online</span>
+              </div>
+              <div className="dropdown-body text-xs text-muted">
+                <div className="p-2.5 border-b border-border">
+                  <span className="text-text font-medium">⚡ Threat Definitions Loaded</span>
+                  <p className="text-[11px] text-muted mt-0.5">OWASP LLM 2025 standard active</p>
+                </div>
+                <div className="p-2.5">
+                  <span className="text-text font-medium">🛡️ Scanner Engine Ready</span>
+                  <p className="text-[11px] text-muted mt-0.5">Target endpoint telemetry calibrated</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Vertical Divider (Screenshot) */}
+        <div className="navbar-divider" />
+
+        {/* User Profile / Login (Screenshot) */}
+        {user ? (
+          <div className="relative">
+            <button
+              className="navbar-user-btn"
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              title="Account Options"
+            >
+              <div className="navbar-user-avatar">
+                {user.full_name
+                  ? user.full_name.charAt(0).toUpperCase()
+                  : user.email
+                  ? user.email.charAt(0).toUpperCase()
+                  : "T"}
+              </div>
+              <span className="navbar-user-name">
+                {user.full_name || (user.email ? user.email.split("@")[0] : "Chakshat")}
+              </span>
+              <ChevronDown size={14} className="text-muted" />
+            </button>
+
+            {isUserMenuOpen && (
+              <div className="navbar-dropdown user-dropdown">
+                <div className="dropdown-user-header">
+                  <div className="font-semibold text-xs text-text">
+                    {user.full_name || "Chakshat"}
+                  </div>
+                  <div className="text-[11px] text-muted truncate">{user.email}</div>
+                </div>
+                <div className="dropdown-divider" />
+                <button
+                  className="dropdown-item text-critical"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    onOpenLogoutConfirm();
+                  }}
+                >
+                  <LogOut size={13} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
           <button
             className="btn btn-primary btn-sm flex items-center gap-1.5"
             onClick={() => onOpenAuth("login")}
           >
             <LogIn size={13} />
             <span>Sign In</span>
-          </button>
-        )}
-
-        {isLanding && (
-          <button
-            className="sidebar-toggle-btn"
-            onClick={toggleTheme}
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
           </button>
         )}
       </div>
@@ -484,6 +520,7 @@ function AppContent() {
           onOpenHelp={() => handleOpenHelp()}
           onOpenGuide={() => setIsGuideOpen(true)}
           onOpenLogoutConfirm={() => setIsLogoutConfirmOpen(true)}
+          onOpenAuth={handleOpenAuth}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           isMobileOpen={isMobileMenuOpen}
@@ -509,6 +546,7 @@ function AppContent() {
           activeTab={activeTab}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           onOpenAuth={handleOpenAuth}
+          onOpenLogoutConfirm={() => setIsLogoutConfirmOpen(true)}
         />
 
         {/* Page Content */}
