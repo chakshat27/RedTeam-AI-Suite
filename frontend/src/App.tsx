@@ -281,7 +281,7 @@ function PageHeader({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const titleMap: Record<string, string> = {
-    configure: "Target Configuration",
+    configure: "Configure Scan",
     dashboard: "Live Attack Dashboard",
     report: "Vulnerability Assessment Report",
     history: "Scan History & Benchmarks",
