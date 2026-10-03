@@ -834,52 +834,56 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 </div>
               </div>
             </div>
-
-            {/* Configuration summary */}
-            <div className="run-summary-card">
-              <div className="section-label" style={{ marginBottom: 12 }}>
-                Configuration Summary
-              </div>
-              <div className="run-summary-row">
-                <span className="run-summary-key">Target</span>
-                <span className="run-summary-val truncate max-w-[140px]" title={targetEndpoint}>
-                  {targetModel || "target-app"}
-                </span>
-              </div>
-              <div className="run-summary-row">
-                <span className="run-summary-key">Categories</span>
-                <span className="run-summary-val">
-                  {selectedCategories.size} / {ALL_CATEGORIES.length}
-                </span>
-              </div>
-              <div className="run-summary-row">
-                <span className="run-summary-key">Cases / cat</span>
-                <span className="run-summary-val">{activeIntensity.cases}</span>
-              </div>
-              <div className="run-summary-row">
-                <span className="run-summary-key">Custom cases</span>
-                <span className="run-summary-val">{customCases.length}</span>
-              </div>
-              <div className="run-summary-row">
-                <span className="run-summary-key">Total probes</span>
-                <span className="run-summary-val" style={{ color: "var(--accent)", fontWeight: 700 }}>
-                  {totalCases}
-                </span>
-              </div>
-              <div className="run-summary-row">
-                <span className="run-summary-key">Est. time</span>
-                <span className="run-summary-val text-secondary">
-                  {activeIntensity.cases <= 5
-                    ? "~2 min"
-                    : activeIntensity.cases <= 10
-                    ? "~4 min"
-                    : "~8 min"}
-                </span>
-              </div>
-            </div>
           </div>
         )}
       </div>
+
+      {/* ── Horizontal Configuration Summary Card below the two cards (Step 2) ── */}
+      {currentStep === 2 && (
+        <div className="run-summary-card horizontal" style={{ marginTop: 16 }}>
+          <div className="run-summary-title">
+            <span>Configuration Summary</span>
+          </div>
+          <div className="run-summary-grid-horizontal">
+            <div className="run-summary-item">
+              <span className="run-summary-key">Target</span>
+              <span className="run-summary-val truncate max-w-[160px]" title={targetEndpoint}>
+                {targetModel || "target-app"}
+              </span>
+            </div>
+            <div className="run-summary-item">
+              <span className="run-summary-key">Categories</span>
+              <span className="run-summary-val">
+                {selectedCategories.size} / {ALL_CATEGORIES.length}
+              </span>
+            </div>
+            <div className="run-summary-item">
+              <span className="run-summary-key">Cases / cat</span>
+              <span className="run-summary-val">{activeIntensity.cases}</span>
+            </div>
+            <div className="run-summary-item">
+              <span className="run-summary-key">Custom cases</span>
+              <span className="run-summary-val">{customCases.length}</span>
+            </div>
+            <div className="run-summary-item">
+              <span className="run-summary-key">Total probes</span>
+              <span className="run-summary-val" style={{ color: "var(--accent)", fontWeight: 700 }}>
+                {totalCases}
+              </span>
+            </div>
+            <div className="run-summary-item">
+              <span className="run-summary-key">Est. time</span>
+              <span className="run-summary-val text-secondary">
+                {activeIntensity.cases <= 5
+                  ? "~2 min"
+                  : activeIntensity.cases <= 10
+                  ? "~4 min"
+                  : "~8 min"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
