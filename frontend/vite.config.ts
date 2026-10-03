@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    allowedHosts: true,
     proxy: {
       // Proxies API calls to the FastAPI backend during local dev, so the
       // frontend can just call relative paths like "/run" without hardcoding
