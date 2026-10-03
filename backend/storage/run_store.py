@@ -1,21 +1,5 @@
 """
-SQLite (via aiosqlite) persistence for RedTeamRun records.
-
-Why SQLite for a portfolio-scale tool: zero external infra dependency
-(no Postgres server to stand up), file-based so the whole run history
-ships as one artifact, and aiosqlite keeps it async-consistent with the
-rest of the FastAPI app (no blocking DB calls stalling the event loop).
-At real scale (thousands of runs, millions of results) this would need
-to move to Postgres — noted as a scaling limitation, not hidden.
-
-Storage strategy: each RedTeamRun (including its full `results` list) is
-serialized as one JSON blob per row. This denormalizes hard — no
-relational query "give me all AttackResults across all runs for category
-X" without loading full run JSON and filtering in Python. That trade-off
-is deliberate at this scale: runs are read whole far more often than
-results are queried across runs (dashboard shows one run at a time;
-regression compares exactly two runs at a time), so a normalized results
-table would add join complexity for a query pattern we don't actually have.
+SQLite (via aiosqlite) persistence for RedTeamRun records, including user_id & user_name tracking.
 """
 
 from __future__ import annotations
@@ -35,14 +19,17 @@ CREATE TABLE IF NOT EXISTS runs (
     status TEXT NOT NULL,
     started_at TEXT NOT NULL,
     completed_at TEXT,
-    run_json TEXT NOT NULL
+    run_json TEXT NOT NULL,
+    user_id TEXT,
+    user_name TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_runs_started_at ON runs(started_at);
+CREATE INDEX IF NOT EXISTS idx_runs_user_id ON runs(user_id);
 """
 
 
 class RunStore:
-    """Async CRUD for RedTeamRun persistence."""
+    """Async CRUD for RedTeamRun persistence in SQLite."""
 
     def __init__(self, database_path: str) -> None:
         self._database_path = database_path
@@ -51,19 +38,30 @@ class RunStore:
     async def init_schema(self) -> None:
         async with aiosqlite.connect(self._database_path) as db:
             await db.executescript(_SCHEMA)
+            # Add user_id / user_name columns if upgrading existing table
+            try:
+                await db.execute("ALTER TABLE runs ADD COLUMN user_id TEXT")
+            except Exception:
+                pass
+            try:
+                await db.execute("ALTER TABLE runs ADD COLUMN user_name TEXT")
+            except Exception:
+                pass
             await db.commit()
 
     async def save_run(self, run: RedTeamRun) -> None:
-        """Insert or update (UPSERT) a run. Called after every status transition so GET polling always sees fresh state."""
+        """Insert or update (UPSERT) a run."""
         async with aiosqlite.connect(self._database_path) as db:
             await db.execute(
                 """
-                INSERT INTO runs (run_id, target_endpoint, status, started_at, completed_at, run_json)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO runs (run_id, target_endpoint, status, started_at, completed_at, run_json, user_id, user_name)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(run_id) DO UPDATE SET
                     status=excluded.status,
                     completed_at=excluded.completed_at,
-                    run_json=excluded.run_json
+                    run_json=excluded.run_json,
+                    user_id=excluded.user_id,
+                    user_name=excluded.user_name
                 """,
                 (
                     run.run_id,
@@ -72,6 +70,8 @@ class RunStore:
                     run.started_at.isoformat(),
                     run.completed_at.isoformat() if run.completed_at else None,
                     run.model_dump_json(),
+                    run.user_id,
+                    run.user_name,
                 ),
             )
             await db.commit()
@@ -84,12 +84,18 @@ class RunStore:
                 return None
             return RedTeamRun.model_validate_json(row[0])
 
-    async def list_runs(self, limit: int = 50) -> list[RunSummary]:
-        """Return lightweight summaries (Phase 1's RunSummary), newest first — used by GET /runs."""
+    async def list_runs(self, limit: int = 50, user_id: str | None = None) -> list[RunSummary]:
+        """Return lightweight summaries, newest first — optionally filtered by user_id."""
         async with aiosqlite.connect(self._database_path) as db:
-            cursor = await db.execute(
-                "SELECT run_json FROM runs ORDER BY started_at DESC LIMIT ?", (limit,)
-            )
+            if user_id:
+                cursor = await db.execute(
+                    "SELECT run_json FROM runs WHERE user_id = ? ORDER BY started_at DESC LIMIT ?",
+                    (user_id, limit),
+                )
+            else:
+                cursor = await db.execute(
+                    "SELECT run_json FROM runs ORDER BY started_at DESC LIMIT ?", (limit,)
+                )
             rows = await cursor.fetchall()
 
         summaries = []
@@ -98,21 +104,26 @@ class RunStore:
             summaries.append(_summarize_run(run))
         return summaries
 
-    async def get_most_recent_completed_run(self, target_endpoint: str, exclude_run_id: str | None = None) -> RedTeamRun | None:
-        """
-        Find the most recent COMPLETED run against the same target, other
-        than the given run — used by regression.py (Phase 10) to pick a
-        default baseline for comparison when the caller doesn't specify one.
-        """
+    async def get_most_recent_completed_run(self, target_endpoint: str, exclude_run_id: str | None = None, user_id: str | None = None) -> RedTeamRun | None:
         async with aiosqlite.connect(self._database_path) as db:
-            cursor = await db.execute(
-                """
-                SELECT run_json FROM runs
-                WHERE target_endpoint = ? AND status = ? AND run_id != ?
-                ORDER BY started_at DESC LIMIT 1
-                """,
-                (target_endpoint, RunStatus.COMPLETED.value, exclude_run_id or ""),
-            )
+            if user_id:
+                cursor = await db.execute(
+                    """
+                    SELECT run_json FROM runs
+                    WHERE target_endpoint = ? AND status = ? AND run_id != ? AND user_id = ?
+                    ORDER BY started_at DESC LIMIT 1
+                    """,
+                    (target_endpoint, RunStatus.COMPLETED.value, exclude_run_id or "", user_id),
+                )
+            else:
+                cursor = await db.execute(
+                    """
+                    SELECT run_json FROM runs
+                    WHERE target_endpoint = ? AND status = ? AND run_id != ?
+                    ORDER BY started_at DESC LIMIT 1
+                    """,
+                    (target_endpoint, RunStatus.COMPLETED.value, exclude_run_id or ""),
+                )
             row = await cursor.fetchone()
             return RedTeamRun.model_validate_json(row[0]) if row else None
 
@@ -127,9 +138,7 @@ def _summarize_run(run: RedTeamRun) -> RunSummary:
         successes = [r for r in results if r.success]
         highest_severity = None
         if successes:
-            # Local import avoids a circular import between storage and reporter
             from reporter.report_generator import _classify_result_severity
-
             best = max(successes, key=lambda r: r.judge_score)
             highest_severity = _classify_result_severity(category, best)
 
@@ -154,4 +163,6 @@ def _summarize_run(run: RedTeamRun) -> RunSummary:
         category_summaries=category_summaries,
         started_at=run.started_at,
         completed_at=run.completed_at,
+        user_id=run.user_id,
+        user_name=run.user_name,
     )

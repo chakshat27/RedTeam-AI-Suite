@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RedTeamRun, RunProgressEvent } from "../types";
 import { api } from "../api";
-import { CheckCircle2, AlertCircle, Loader2, Terminal, ShieldAlert, ShieldCheck, PlayCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, Terminal } from "lucide-react";
 
 interface Props {
   runId: string;
@@ -16,7 +16,7 @@ function formatCat(cat?: string | null) {
 export default function RunDashboard({ runId, onViewReport }: Props) {
   const [run, setRun] = useState<RedTeamRun | null>(null);
   const [events, setEvents] = useState<RunProgressEvent[]>([]);
-  const [showLog, setShowLog] = useState(true); // Open live log by default for clear visibility
+  const [showLog, setShowLog] = useState(true);
   const logEndRef = useRef<HTMLDivElement>(null);
 
   // Poll for run state
@@ -73,7 +73,6 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
     categoryProgress.set(r.category, entry);
   }
 
-  // For completed runs, use results as source of truth
   if (run?.status === "completed") {
     const resultMap = new Map<string, { done: number; success: number; total: number }>();
     for (const r of run.results ?? []) {
@@ -97,7 +96,6 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
   const isFailed = status === "failed";
   const isRunning = status === "running" || status === "pending" || status === "connecting";
 
-  // Total Progress Calculations
   const expectedTotalCases = (run?.categories_run.length ?? 0) * (run?.cases_per_category ?? 5);
   let completedCount = 0;
   let vulnDetectedCount = 0;
@@ -120,12 +118,11 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
   const overallAsr = totalCases > 0 ? ((vulnDetectedCount / totalCases) * 100).toFixed(0) : "0";
 
   function renderMeaningfulLog(e: RunProgressEvent) {
-    const timeStr = new Date(e.timestamp || Date.now()).toLocaleTimeString();
     const catLabel = formatCat(e.category);
 
     if (e.event_type === "run_started") {
       return (
-        <span style={{ color: "#0284C7" }}>
+        <span style={{ color: "var(--low)" }}>
           🚀 <strong>[SCAN STARTED]</strong> Target LLM Endpoint: <code>{run?.target_endpoint || e.message}</code> ({run?.categories_run.length || 0} categories)
         </span>
       );
@@ -133,7 +130,7 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
 
     if (e.event_type === "category_started") {
       return (
-        <span style={{ color: "#D97706" }}>
+        <span style={{ color: "var(--medium)" }}>
           ⚡ <strong>[TESTING CATEGORY]</strong> Initiating adversarial probes for <strong>{catLabel}</strong>...
         </span>
       );
@@ -142,13 +139,13 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
     if (e.event_type === "case_completed") {
       if (e.success) {
         return (
-          <span style={{ color: "#BE123C", fontWeight: 600 }}>
+          <span style={{ color: "var(--critical)", fontWeight: 600 }}>
             🔴 <strong>[VULNERABILITY FOUND]</strong> Category: <strong>{catLabel}</strong> — Probe #{e.case_id || '1'} bypassed safety guardrails!
           </span>
         );
       }
       return (
-        <span style={{ color: "#047857" }}>
+        <span style={{ color: "var(--safe)" }}>
           🛡️ <strong>[PROBE DEFENDED]</strong> Category: <strong>{catLabel}</strong> — Target AI successfully resisted attack probe #{e.case_id || '1'}.
         </span>
       );
@@ -156,7 +153,7 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
 
     if (e.event_type === "category_completed") {
       return (
-        <span style={{ color: "#047857", fontWeight: 600 }}>
+        <span style={{ color: "var(--safe)", fontWeight: 600 }}>
           ✅ <strong>[CATEGORY FINISHED]</strong> Completed all test cases for <strong>{catLabel}</strong>.
         </span>
       );
@@ -164,13 +161,13 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
 
     if (e.event_type === "run_completed") {
       return (
-        <span style={{ color: "#047857", fontWeight: 700 }}>
+        <span style={{ color: "var(--safe)", fontWeight: 700 }}>
           🏁 <strong>[SCAN FINISHED]</strong> Security audit completed. Generated audit report.
         </span>
       );
     }
 
-    return <span>[{timeStr}] {e.message}</span>;
+    return <span>{e.message}</span>;
   }
 
   return (
@@ -216,18 +213,18 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
           background: "var(--surface)",
           border: "1px solid var(--border)",
           borderRadius: 16,
-          padding: "16px 20px",
+          padding: "18px 22px",
           marginBottom: 20,
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
             {isRunning ? (
-              <Loader2 size={16} strokeWidth={2.2} className="text-teal-600 animate-spin" style={{ color: "#059669" }} />
+              <Loader2 size={16} strokeWidth={2.2} className="animate-spin" style={{ color: "var(--accent)" }} />
             ) : isComplete ? (
-              <CheckCircle2 size={16} strokeWidth={2.2} style={{ color: "#047857" }} />
+              <CheckCircle2 size={16} strokeWidth={2.2} style={{ color: "var(--safe)" }} />
             ) : (
-              <AlertCircle size={16} strokeWidth={2.2} style={{ color: "#BE123C" }} />
+              <AlertCircle size={16} strokeWidth={2.2} style={{ color: "var(--critical)" }} />
             )}
             <span>
               {isRunning
@@ -238,7 +235,7 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
             </span>
           </div>
 
-          <div style={{ fontSize: 13, fontWeight: 700, color: isComplete ? "#047857" : "#059669" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: isComplete ? "var(--safe)" : "var(--accent)" }}>
             {progressPercent}%
           </div>
         </div>
@@ -249,7 +246,7 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
             style={{
               width: `${progressPercent}%`,
               height: "100%",
-              background: isComplete ? "#047857" : "linear-gradient(90deg, #059669 0%, #10B981 100%)",
+              background: isComplete ? "var(--safe)" : "var(--gradient-orange)",
               transition: "width 0.4s ease",
             }}
           />
@@ -262,35 +259,27 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-            gap: 12,
+            gap: 14,
             marginBottom: 24,
           }}
         >
           {[
-            { label: "Total probes", value: totalCases },
-            { label: "Vulnerabilities", value: vulnDetectedCount, accent: vulnDetectedCount > 0 ? "#BE123C" : "#047857" },
+            { label: "Total Probes", value: totalCases },
+            { label: "Vulnerabilities", value: vulnDetectedCount, accent: vulnDetectedCount > 0 ? "var(--critical)" : "var(--safe)" },
             {
-              label: "Attack success rate",
+              label: "Attack Success Rate",
               value: `${overallAsr}%`,
-              accent: Number(overallAsr) > 30 ? "#BE123C" : Number(overallAsr) > 10 ? "#D97706" : "#047857",
+              accent: Number(overallAsr) > 30 ? "var(--critical)" : Number(overallAsr) > 10 ? "var(--medium)" : "var(--safe)",
             },
             {
-              label: "Categories run",
+              label: "Categories Run",
               value: run?.categories_run.length ?? 0,
             },
           ].map((stat) => (
-            <div
-              key={stat.label}
-              style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                borderRadius: 14,
-                padding: "16px 18px",
-              }}
-            >
+            <div key={stat.label} className="card card-sm">
               <div
                 style={{
-                  fontSize: 24,
+                  fontSize: 26,
                   fontWeight: 600,
                   letterSpacing: "-0.02em",
                   color: stat.accent ?? "var(--text)",
@@ -331,16 +320,11 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
               <Loader2
                 size={15}
                 strokeWidth={2}
-                color="#059669"
-                style={{ animation: "spin 1s linear infinite" }}
+                style={{ color: "var(--accent)", animation: "spin 1s linear infinite" }}
               />
             )}
-            {isComplete && (
-              <CheckCircle2 size={16} strokeWidth={2} color="#047857" />
-            )}
-            {isFailed && (
-              <AlertCircle size={16} strokeWidth={2} color="#BE123C" />
-            )}
+            {isComplete && <CheckCircle2 size={16} strokeWidth={2} style={{ color: "var(--safe)" }} />}
+            {isFailed && <AlertCircle size={16} strokeWidth={2} style={{ color: "var(--critical)" }} />}
           </div>
 
           <div className="cat-grid">
@@ -362,12 +346,12 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
                     {done}/{total}
                   </div>
                   {hasVuln && (
-                    <div style={{ fontSize: 10, color: "#BE123C", fontWeight: 700, marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: "var(--critical)", fontWeight: 700, marginTop: 4 }}>
                       🚨 {success} Vuln{success > 1 ? "s" : ""}
                     </div>
                   )}
                   {complete && !hasVuln && (
-                    <div style={{ fontSize: 10, color: "#047857", fontWeight: 600, marginTop: 4 }}>
+                    <div style={{ fontSize: 10, color: "var(--safe)", fontWeight: 600, marginTop: 4 }}>
                       ✓ Defended
                     </div>
                   )}
@@ -406,7 +390,7 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
           onClick={() => setShowLog(!showLog)}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Terminal size={15} color="#059669" />
+            <Terminal size={15} style={{ color: "var(--accent)" }} />
             <span>Live Security Audit Log ({events.length} events)</span>
           </div>
           <span style={{ color: "var(--muted)", fontSize: 11 }}>
@@ -446,24 +430,23 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 12,
+            gap: 14,
             padding: "20px 24px",
-            background: "rgba(4, 120, 87, 0.08)",
-            border: "1px solid rgba(4, 120, 87, 0.25)",
-            borderRadius: 14,
+            background: "var(--accent-subtle)",
+            border: "1px solid var(--border-strong)",
+            borderRadius: 16,
           }}
         >
-          <CheckCircle2 size={20} strokeWidth={2} color="#047857" />
+          <CheckCircle2 size={22} strokeWidth={2} style={{ color: "var(--safe)" }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, color: "#047857" }}>Scan Complete</div>
-            <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>
+            <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>Scan Complete</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
               {vulnDetectedCount} vulnerabilit{vulnDetectedCount !== 1 ? "ies" : "y"} detected across {totalCases} test cases.
             </div>
           </div>
           <button
             className="btn btn-primary"
             onClick={onViewReport}
-            style={{ marginTop: 0 }}
           >
             View Full Report →
           </button>

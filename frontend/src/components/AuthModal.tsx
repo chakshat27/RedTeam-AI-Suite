@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, ShieldCheck, Eye, EyeOff, AlertCircle, ArrowRight } from "lucide-react";
+import { X, Mail, ShieldCheck, Eye, EyeOff, AlertCircle, ArrowRight, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 interface AuthModalProps {
@@ -61,112 +61,107 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = "l
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          initial={{ opacity: 0, scale: 0.95, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.2 }}
-          className="auth-modal-card glass rounded-2xl w-full max-w-md overflow-hidden border shadow-2xl relative"
+          exit={{ opacity: 0, scale: 0.95, y: 12 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+          className="auth-modal-card glass rounded-2xl w-full max-w-md overflow-hidden border border-border-strong shadow-2xl relative"
         >
-          {/* Top banner / header */}
-          <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          {/* Top Banner / Header */}
+          <div className="p-6 pb-5 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-accent/15 border border-accent/30 text-accent">
+              <div className="p-2.5 rounded-xl bg-accent-subtle border border-accent/20 text-accent">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-main">
+                <h3 className="text-xl font-bold text-text tracking-tight">
                   {mode === "login" ? "Welcome Back" : "Create Account"}
                 </h3>
-                <p className="text-xs text-sub text-muted font-medium">
+                <p className="text-xs text-muted font-medium mt-0.5">
                   {mode === "login"
-                    ? "Log in to access user workspaces"
-                    : "Register to get started with Red Team Suite"}
+                    ? "Log in to access your security workspace"
+                    : "Register to start AI safety audits & red-teaming"}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 transition text-sub"
+              className="p-2 rounded-lg hover:bg-surface-hover transition text-muted hover:text-text"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Tab Switcher with Prominent Color Active Tab */}
-          <div className="flex border-b border-white/10 bg-surface/50 p-1.5 gap-1">
-            <button
-              type="button"
-              onClick={() => switchMode("login")}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                mode === "login"
-                  ? "bg-accent text-accent-fg shadow-md border border-accent/40 font-bold"
-                  : "bg-transparent text-sub hover:text-main"
-              }`}
-            >
-              Log In
-            </button>
-            <button
-              type="button"
-              onClick={() => switchMode("signup")}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                mode === "signup"
-                  ? "bg-accent text-accent-fg shadow-md border border-accent/40 font-bold"
-                  : "bg-transparent text-sub hover:text-main"
-              }`}
-            >
-              Sign Up
-            </button>
+          {/* Segmented Tab Switcher */}
+          <div className="p-4 pb-0">
+            <div className="auth-tab-container flex bg-surface-elevated p-1 rounded-xl border border-border">
+              <button
+                type="button"
+                onClick={() => switchMode("login")}
+                className={`auth-tab-btn ${mode === "login" ? "active" : "inactive"}`}
+              >
+                Log In
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode("signup")}
+                className={`auth-tab-btn ${mode === "signup" ? "active" : "inactive"}`}
+              >
+                Sign Up
+              </button>
+            </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -5 }}
+                initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-center gap-2"
+                className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/25 text-red-500 text-xs flex items-start gap-2.5"
               >
-                <AlertCircle className="w-4 h-4 shrink-0" />
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </motion.div>
             )}
 
             {mode === "signup" && (
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-sub tracking-wide">Full Name</label>
+                <label className="field-label">Full Name</label>
                 <div className="relative flex items-center">
+                  <User className="w-4 h-4 absolute left-3.5 text-muted pointer-events-none" />
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Alex Vance"
-                    className="w-full pl-4 pr-4 py-2.5 rounded-xl border bg-surface/80 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    className="auth-input pl-10"
                   />
                 </div>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-sub tracking-wide">Email Address</label>
+              <label className="field-label">Email Address</label>
               <div className="relative flex items-center">
-                <Mail className="w-4 h-4 absolute left-3 text-sub" />
+                <Mail className="w-4 h-4 absolute left-3.5 text-muted pointer-events-none" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="researcher@example.com"
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border bg-surface/80 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  className="auth-input pl-10"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-sub tracking-wide">Password</label>
+              <label className="field-label">Password</label>
               <div className="relative flex items-center">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -174,12 +169,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = "l
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-4 pr-10 py-2.5 rounded-xl border bg-surface/80 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  className="auth-input pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 text-sub hover:text-main"
+                  className="absolute right-3.5 text-muted hover:text-text p-1"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -189,20 +184,20 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = "l
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 rounded-xl btn-primary font-semibold text-sm shadow-lg flex items-center justify-center gap-2 mt-6 disabled:opacity-50 transition-transform active:scale-[0.99]"
+              className="w-full py-3 px-4 rounded-xl btn-primary font-bold text-sm shadow-lg flex items-center justify-center gap-2 mt-6 disabled:opacity-50 transition-all"
             >
               {isSubmitting ? (
                 <span>Processing...</span>
               ) : (
                 <>
-                  <span>{mode === "login" ? "Log In to Suite" : "Create My Account"}</span>
+                  <span>{mode === "login" ? "Log In to Suite" : "Create Account"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
 
             <div className="text-center pt-2">
-              <p className="text-xs text-sub">
+              <p className="text-xs text-muted">
                 {mode === "login" ? "Don't have an account?" : "Already registered?"}{" "}
                 <button
                   type="button"

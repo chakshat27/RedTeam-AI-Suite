@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import type { RunSummary, RunComparison } from "../types";
 import { api } from "../api";
+import { useAuth } from "../context/AuthContext";
 import { GitCompare, Activity, FileText } from "lucide-react";
 
 interface Props {
@@ -18,16 +19,17 @@ interface Props {
 }
 
 export default function RunHistory({ onViewReport, onViewDashboard }: Props) {
+  const { user } = useAuth();
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [comparison, setComparison] = useState<RunComparison | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
-      .listRuns()
+      .listRuns(50, user?.id)
       .then(setRuns)
       .finally(() => setLoading(false));
-  }, []);
+  }, [user?.id]);
 
   async function handleCompareLatestTwo() {
     const completed = runs.filter((r) => r.status === "completed");

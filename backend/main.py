@@ -388,15 +388,8 @@ class RunCreateRequest(BaseModel):
     execution_mode: str = "local"  # [V2] "local" (default, V1 behavior) or "relay"
     agent_id: str | None = None  # [V2] required when execution_mode == "relay"
     use_agent_local_target_key: bool = False
-    # [V3] When True (relay mode only): the control plane does NOT forward
-    # target_api_key to the agent at all, even if one was typed into the
-    # dashboard — the agent instead falls back to ITS OWN local
-    # Settings.target_api_key (agent/relay_agent.py's _run_job). This
-    # closes V2's disclosed gap where the target key still passed through
-    # the control plane once per relay run. Leave False to keep V2's
-    # behavior (type a target key in the dashboard, it's forwarded as
-    # part of the job payload — still never persisted, but does cross
-    # the control plane process).
+    user_id: str | None = None
+    user_name: str | None = None
 
 
 class RunCreateResponse(BaseModel):
@@ -411,12 +404,6 @@ async def create_run(request: RunCreateRequest) -> RunCreateResponse:
     categories = request.categories or list(AttackCategory)
 
     if request.execution_mode == "relay":
-        # [V2] Relay mode: the control plane NEVER builds real LLM clients
-        # and never touches any API key for this run. It only validates
-        # that the requested agent is connected, persists a PENDING run,
-        # and hands the job off over that agent's own WebSocket. The
-        # agent executes entirely on its own machine using its own local
-        # Settings/.env — see agent/relay_agent.py.
         if not request.agent_id:
             raise HTTPException(status_code=400, detail="execution_mode='relay' requires agent_id.")
         agent_ws = _connected_agents.get(request.agent_id)
@@ -435,6 +422,8 @@ async def create_run(request: RunCreateRequest) -> RunCreateResponse:
             triggered_by=request.triggered_by,
             execution_mode="relay",
             agent_id=request.agent_id,
+            user_id=request.user_id,
+            user_name=request.user_name,
         )
         await app.state.run_store.save_run(run)
         _agent_current_run[request.agent_id] = run.run_id
@@ -443,19 +432,13 @@ async def create_run(request: RunCreateRequest) -> RunCreateResponse:
             "type": "execute_run",
             "run": run.model_dump(mode="json"),
             "custom_cases": [cc.model_dump(mode="json") for cc in (request.custom_cases or [])],
-            # [V3] Omit target_api_key entirely when the caller opted into
-            # agent-local key resolution — the field is simply absent from
-            # the payload, not sent-as-null, so there's no ambiguity for
-            # anyone inspecting network traffic about whether a key was
-            # withheld on purpose.
             "target_api_key": None if request.use_agent_local_target_key else request.target_api_key,
         }
         await agent_ws.send_text(json.dumps(job_message))
 
         return RunCreateResponse(run_id=run.run_id)
 
-    # --- execution_mode == "local" (default): unchanged V1/V1.1 behavior ---
-    # Resolve target API key fallback from environment settings
+    # --- execution_mode == "local" (default) ---
     api_key_str = request.target_api_key
     if not api_key_str or not api_key_str.strip():
         settings = app.state.settings
@@ -471,11 +454,11 @@ async def create_run(request: RunCreateRequest) -> RunCreateResponse:
         cases_per_category=request.cases_per_category,
         triggered_by=request.triggered_by,
         execution_mode="local",
+        user_id=request.user_id,
+        user_name=request.user_name,
     )
     await app.state.run_store.save_run(run)
 
-    # Fire-and-forget background execution — POST returns immediately with
-    # run_id (see module docstring on why we don't block here).
     task = asyncio.create_task(
         _execute_run_in_background(
             run,
@@ -500,8 +483,8 @@ async def get_run(run_id: str) -> RedTeamRun:
 
 
 @app.get("/runs")
-async def list_runs(limit: int = 50):
-    return await app.state.run_store.list_runs(limit=limit)
+async def list_runs(limit: int = 50, user_id: str | None = None):
+    return await app.state.run_store.list_runs(limit=limit, user_id=user_id)
 
 
 @app.get("/report/{run_id}")

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ALL_CATEGORIES, type AttackCategory } from "../types";
 import { api, type CustomCaseInput } from "../api";
+import { useAuth } from "../context/AuthContext";
 import {
   Target,
   ChevronDown,
@@ -97,6 +98,7 @@ const WIZARD_STEPS = [
 ];
 
 export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
+  const { user } = useAuth();
   // Active Wizard Step (1, 2, 3, 4)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
@@ -246,6 +248,8 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
         custom_cases: customCases.length > 0 ? customCases : undefined,
         execution_mode: executionMode,
         agent_id: executionMode === "relay" ? selectedAgentId : undefined,
+        user_id: user?.id,
+        user_name: user?.full_name || user?.email,
       });
       onRunStarted(run_id);
     } catch (e) {
