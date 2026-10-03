@@ -1,0 +1,57 @@
+name: AI Red Team Regression Gate
+
+# Runs the red-team suite against a deployed target (e.g. a staging
+# instance of your RAG system) on every push to main, and fails the build
+# if any NEW critical/high vulnerability is detected relative to the
+# previous run — see backend/ci/red_team_gate.py and Phase 10 (regression.py).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target_endpoint:
+        description: "Target endpoint to test"
+        required: true
+        default: "http://localhost:8001/v1"
+
+jobs:
+  red-team-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Start backend API
+        working-directory: backend
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          uvicorn main:app --host 0.0.0.0 --port 8000 &
+          # Wait for the API to be ready before the gate script starts polling it.
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/health && break
+            sleep 1
+          done
+
+      - name: Run red team regression gate
+        working-directory: backend
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python ci/red_team_gate.py \
+            --api-url http://localhost:8000 \
+            --target-endpoint "${{ github.event.inputs.target_endpoint || 'http://localhost:8001/v1' }}" \
+            --target-model "ci-target" \
+            --cases-per-category 5
+        # Non-zero exit here (new CRITICAL/HIGH vulnerability) fails the job,
+        # which is what blocks the PR/merge — see red_team_gate.py's exit codes.
