@@ -4,6 +4,8 @@ import { api, type CustomCaseInput } from "../api";
 import { useAuth } from "../context/AuthContext";
 import {
   Target,
+  ChevronDown,
+  ChevronUp,
   Settings,
   Plus,
   Trash2,
@@ -131,6 +133,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
     new Set(ALL_CATEGORIES)
   );
   const [intensity, setIntensity] = useState<ScanIntensity>("standard");
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   // Custom Cases
   const [customCases, setCustomCases] = useState<CustomCaseInput[]>([]);
@@ -255,6 +258,10 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
       setSubmitting(false);
     }
   }
+
+  const visibleCategories = showAllCategories
+    ? ALL_CATEGORIES
+    : ALL_CATEGORIES.slice(0, 6);
 
   const totalCases = selectedCategories.size * activeIntensity.cases + customCases.length;
 
@@ -428,7 +435,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
 
               <div className="config-section-body">
                 <div className="category-chips">
-                  {ALL_CATEGORIES.map((cat) => {
+                  {visibleCategories.map((cat) => {
                     const meta = CATEGORY_DETAILS[cat];
                     const sel = selectedCategories.has(cat);
                     return (
@@ -436,7 +443,6 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                         key={cat}
                         className={`category-chip ${sel ? "selected" : ""}`}
                         onClick={() => toggleCategory(cat)}
-                        type="button"
                       >
                         <div className="category-chip-check">{sel && "✓"}</div>
                         <span className="category-chip-name">{meta.label}</span>
@@ -446,12 +452,29 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                   })}
                 </div>
 
+                {ALL_CATEGORIES.length > 6 && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ marginTop: 4, alignSelf: "flex-start" }}
+                    onClick={() => setShowAllCategories(!showAllCategories)}
+                  >
+                    {showAllCategories ? (
+                      <>
+                        <ChevronUp size={13} /> Show less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown size={13} /> Show {ALL_CATEGORIES.length - 6} more categories
+                      </>
+                    )}
+                  </button>
+                )}
+
                 {/* Step controls */}
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
                   <button
                     className="btn btn-secondary"
                     onClick={() => validateAndNextStep(1)}
-                    type="button"
                   >
                     <ArrowLeft size={14} />
                     <span>Back</span>
@@ -459,7 +482,6 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                   <button
                     className="btn btn-primary"
                     onClick={() => validateAndNextStep(3)}
-                    type="button"
                   >
                     <span>Next: Custom & Relay</span>
                     <ArrowRight size={14} />
