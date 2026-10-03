@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, ShieldCheck, Eye, EyeOff, AlertCircle, ArrowRight, User } from "lucide-react";
+import { X, ShieldCheck, Eye, EyeOff, AlertCircle, ArrowRight, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 interface AuthModalProps {
@@ -18,6 +18,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = "l
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,33 +132,27 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = "l
             {mode === "signup" && (
               <div className="space-y-1.5">
                 <label className="field-label">Full Name</label>
-                <div className="relative flex items-center">
-                  <User className="w-4 h-4 absolute left-3.5 text-muted pointer-events-none" />
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Alex Vance"
-                    className="auth-input pl-10"
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Alex Vance"
+                  className="auth-input"
+                />
               </div>
             )}
 
             <div className="space-y-1.5">
               <label className="field-label">Email Address</label>
-              <div className="relative flex items-center">
-                <Mail className="w-4 h-4 absolute left-3.5 text-muted pointer-events-none" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="researcher@example.com"
-                  className="auth-input pl-10"
-                />
-              </div>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="researcher@example.com"
+                className="auth-input"
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -179,6 +174,25 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = "l
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+            </div>
+
+            {/* Keep me signed in button / checkbox */}
+            <div className="flex items-center justify-between pt-1">
+              <label
+                className="flex items-center gap-2 cursor-pointer text-xs text-text-secondary select-none"
+                onClick={() => setRememberMe(!rememberMe)}
+              >
+                <div
+                  className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                    rememberMe
+                      ? "bg-accent border-accent text-white"
+                      : "border-border-strong bg-surface"
+                  }`}
+                >
+                  {rememberMe && <Check className="w-3 h-3 stroke-[3]" />}
+                </div>
+                <span>Keep me signed in</span>
+              </label>
             </div>
 
             <button
