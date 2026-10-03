@@ -267,13 +267,6 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
 
   return (
     <div>
-      {/* ── Page subtitle guide (Navbar displays Configure Scan) ── */}
-      <div style={{ marginBottom: 16 }}>
-        <p className="page-subtitle" style={{ margin: 0 }}>
-          Follow the 4-step wizard to set up your LLM target and security audit scope.
-        </p>
-      </div>
-
       {/* ── 4-Step Wizard Stepper Header ── */}
       <div className="wizard-steps">
         {WIZARD_STEPS.map((s, idx) => {

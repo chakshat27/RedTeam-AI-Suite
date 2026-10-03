@@ -259,7 +259,7 @@ input:-webkit-autofill:active {
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 24px 40px 60px;
+  padding: 16px 40px 48px;
 }
 
 @media (max-width: 768px) {
@@ -1352,11 +1352,11 @@ pre, code {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
-  padding: 16px 20px;
+  padding: 12px 18px;
   overflow-x: auto;
 }
 
@@ -1444,8 +1444,8 @@ pre, code {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
@@ -1453,8 +1453,8 @@ pre, code {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
 }
 
