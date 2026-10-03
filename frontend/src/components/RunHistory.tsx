@@ -54,11 +54,10 @@ export default function RunHistory({ onViewReport, onViewDashboard }: Props) {
 
   return (
     <div>
-      {/* ── Page header ── */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 className="page-title">Run History</h1>
-        <p className="page-subtitle">
-          Track safety posture over time and compare successive scans.
+      {/* ── Page Subtitle (Navbar displays Scan History & Benchmarks) ── */}
+      <div style={{ marginBottom: 20 }}>
+        <p className="page-subtitle" style={{ margin: 0 }}>
+          Track safety posture over time and compare successive scans across historical benchmarks.
         </p>
       </div>
 

@@ -185,9 +185,8 @@ export default function RunDashboard({ runId, onViewReport }: Props) {
         }}
       >
         <div>
-          <h1 className="page-title">Run Dashboard</h1>
           {run && (
-            <p className="page-subtitle">
+            <p className="page-subtitle" style={{ margin: 0 }}>
               {run.target_endpoint} · {run.categories_run.length} categories ·{" "}
               {run.cases_per_category} cases each
               {run.execution_mode === "relay" && (

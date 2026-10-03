@@ -267,10 +267,9 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
 
   return (
     <div>
-      {/* ── Page header ── */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 className="page-title">Configure Scan</h1>
-        <p className="page-subtitle">
+      {/* ── Page subtitle guide (Navbar displays Configure Scan) ── */}
+      <div style={{ marginBottom: 16 }}>
+        <p className="page-subtitle" style={{ margin: 0 }}>
           Follow the 4-step wizard to set up your LLM target and security audit scope.
         </p>
       </div>
