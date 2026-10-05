@@ -17,7 +17,82 @@ import {
   ArrowLeft,
   Play,
   RotateCcw,
+  Cloud,
+  Monitor,
+  Code2,
+  Bot,
 } from "lucide-react";
+
+type TargetType = "cloud" | "local_llm" | "local_project" | "ai_agent";
+
+interface TargetTypeConfig {
+  key: TargetType;
+  icon: React.ReactNode;
+  label: string;
+  sublabel: string;
+  endpointPlaceholder: string;
+  endpointDefault: string;
+  modelPlaceholder: string;
+  authRequired: boolean;
+  authHint: string;
+  endpointHint: string;
+  executionMode: "local" | "relay";
+}
+
+const TARGET_TYPES: TargetTypeConfig[] = [
+  {
+    key: "cloud",
+    icon: <Cloud size={15} />,
+    label: "Cloud LLM API",
+    sublabel: "OpenAI, Groq, Anthropic…",
+    endpointPlaceholder: "https://api.openai.com/v1",
+    endpointDefault: "https://api.openai.com/v1",
+    modelPlaceholder: "gpt-4o",
+    authRequired: true,
+    authHint: "API key required (e.g. sk-…). Processed in-memory only.",
+    endpointHint: "OpenAI-compatible cloud endpoint. Works with OpenAI, Azure OpenAI, Groq, Together AI, OpenRouter, etc.",
+    executionMode: "local",
+  },
+  {
+    key: "local_llm",
+    icon: <Monitor size={15} />,
+    label: "Local LLM",
+    sublabel: "Ollama, LM Studio, vLLM…",
+    endpointPlaceholder: "http://localhost:11434/v1",
+    endpointDefault: "http://localhost:11434/v1",
+    modelPlaceholder: "llama3:8b",
+    authRequired: false,
+    authHint: "Usually not required for local LLMs. Leave blank unless your server enforces it.",
+    endpointHint: "Local LLM server endpoint. Ollama: http://localhost:11434/v1 · LM Studio: http://localhost:1234/v1 · vLLM: http://localhost:8000/v1",
+    executionMode: "local",
+  },
+  {
+    key: "local_project",
+    icon: <Code2 size={15} />,
+    label: "Custom Backend",
+    sublabel: "FastAPI, Flask, Express…",
+    endpointPlaceholder: "http://localhost:8001/v1",
+    endpointDefault: "http://localhost:8001/v1",
+    modelPlaceholder: "target-app",
+    authRequired: false,
+    authHint: "Optional. Provide a Bearer token if your backend enforces authentication.",
+    endpointHint: "Your local project or custom AI backend. Must expose an OpenAI-compatible /v1/chat/completions endpoint.",
+    executionMode: "local",
+  },
+  {
+    key: "ai_agent",
+    icon: <Bot size={15} />,
+    label: "AI Agent (Relay)",
+    sublabel: "Private / firewalled agents",
+    endpointPlaceholder: "http://internal-agent:8080/v1",
+    endpointDefault: "",
+    modelPlaceholder: "agent-v1",
+    authRequired: false,
+    authHint: "Optional. The relay agent forwards probes securely — your endpoint stays private.",
+    endpointHint: "AI agent behind a firewall or private network. Probes are dispatched via a local Relay Agent process over WebSocket — no direct exposure needed.",
+    executionMode: "relay",
+  },
+];
 
 interface Props {
   onRunStarted: (runId: string) => void;
@@ -102,6 +177,9 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
   // Active Wizard Step (1, 2, 3, 4)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
+  // Target type selector
+  const [targetType, setTargetType] = useState<TargetType>("local_project");
+
   // Application Profile State
   const [targetEndpoint, setTargetEndpoint] = useState("http://localhost:8001/v1");
   const [targetApiKey, setTargetApiKey] = useState("");
@@ -145,6 +223,17 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const activeIntensity = INTENSITIES.find((i) => i.key === intensity) || INTENSITIES[0];
+  const activeTargetType = TARGET_TYPES.find((t) => t.key === targetType) || TARGET_TYPES[2];
+
+  function handleTargetTypeSelect(type: TargetType) {
+    const config = TARGET_TYPES.find((t) => t.key === type)!;
+    setTargetType(type);
+    if (config.endpointDefault) setTargetEndpoint(config.endpointDefault);
+    setTargetModel(config.modelPlaceholder);
+    setExecutionMode(config.executionMode);
+    setTargetApiKey("");
+    setError(null);
+  }
 
   function toggleCategory(cat: AttackCategory) {
     setSelectedCategories((prev) => {
@@ -182,6 +271,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
   }
 
   function handleReset() {
+    setTargetType("local_project");
     setTargetEndpoint("http://localhost:8001/v1");
     setTargetApiKey("");
     setTargetModel("target-app");
@@ -320,11 +410,32 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 </div>
                 <div>
                   <div className="card-title">Step 1: Target Application Setup</div>
-                  <div className="card-subtitle">Configure the target AI model, local application, or agent endpoint to test</div>
+                  <div className="card-subtitle">What kind of AI target do you want to test?</div>
                 </div>
               </div>
               <div className="config-section-body">
+
+                {/* ── Target Type Picker ── */}
                 <div>
+                  <label style={{ marginBottom: 8, display: "block" }}>Target Type</label>
+                  <div className="target-type-grid">
+                    {TARGET_TYPES.map((t) => (
+                      <button
+                        key={t.key}
+                        type="button"
+                        className={`target-type-card ${targetType === t.key ? "selected" : ""}`}
+                        onClick={() => handleTargetTypeSelect(t.key)}
+                      >
+                        <span className="target-type-icon">{t.icon}</span>
+                        <span className="target-type-label">{t.label}</span>
+                        <span className="target-type-sublabel">{t.sublabel}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Endpoint URL ── */}
+                <div style={{ marginTop: 16 }}>
                   <label>
                     Endpoint URL <span className="req">*</span>
                   </label>
@@ -332,13 +443,12 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                     type="text"
                     value={targetEndpoint}
                     onChange={(e) => setTargetEndpoint(e.target.value)}
-                    placeholder="http://localhost:8001/v1 (or https://api.openai.com/v1)"
+                    placeholder={activeTargetType.endpointPlaceholder}
                   />
-                  <span className="field-hint">
-                    OpenAI endpoint URL you wish to test. Supports OpenAI cloud APIs, local LLMs (Ollama http://localhost:11434/v1, LM Studio, vLLM), AI agents, or local project endpoints.
-                  </span>
+                  <span className="field-hint">{activeTargetType.endpointHint}</span>
                 </div>
 
+                {/* ── Auth + Model ── */}
                 <div
                   style={{
                     display: "grid",
@@ -349,15 +459,20 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 >
                   <div>
                     <label>
-                      Auth Token / API Key <span className="opt-tag">Optional</span>
+                      Auth Token / API Key{" "}
+                      {activeTargetType.authRequired ? (
+                        <span className="req">*</span>
+                      ) : (
+                        <span className="opt-tag">Optional</span>
+                      )}
                     </label>
                     <input
                       type="password"
                       value={targetApiKey}
                       onChange={(e) => setTargetApiKey(e.target.value)}
-                      placeholder="Bearer token or API key"
+                      placeholder={activeTargetType.authRequired ? "sk-…  (required)" : "Bearer token or API key"}
                     />
-                    <span className="field-hint">Processed in-memory; fallback loaded from .env if omitted</span>
+                    <span className="field-hint">{activeTargetType.authHint}</span>
                   </div>
 
                   <div>
@@ -368,14 +483,19 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                       type="text"
                       value={targetModel}
                       onChange={(e) => setTargetModel(e.target.value)}
-                      placeholder="target-app"
+                      placeholder={activeTargetType.modelPlaceholder}
                     />
-                    <span className="field-hint">Model ID (e.g. gpt-4o, llama3:8b, mistral). Defaults to "target-app"</span>
+                    <span className="field-hint">
+                      Model name sent in API requests (e.g. {activeTargetType.modelPlaceholder}). Defaults to "target-app".
+                    </span>
                   </div>
                 </div>
 
+                {/* ── Context banner ── */}
                 <div className="notice-banner" style={{ marginTop: 8, fontSize: 12 }}>
-                  💡 Target endpoints can be cloud APIs, local LLM servers (Ollama, LM Studio, vLLM), local projects, or custom AI agents. Credentials are never logged or stored to disk.
+                  {targetType === "ai_agent"
+                    ? "🤖 AI Agent mode will automatically configure Relay execution in Step 3. Your endpoint stays private — probes are forwarded via a local relay process."
+                    : "🔒 Credentials are processed in-memory only and are never logged or stored to disk."}
                 </div>
 
                 {/* Step controls */}
