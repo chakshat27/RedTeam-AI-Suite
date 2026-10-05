@@ -1431,6 +1431,150 @@ pre, code {
   margin-left: 2px;
 }
 
+/* ── Profile Wizard Design System (Reference Inspired) ── */
+.profile-wizard-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 32px 36px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.profile-accent-bar {
+  width: 3.5px;
+  height: 15px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.profile-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.profile-field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-badge-optional {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.profile-input {
+  width: 100%;
+  border-radius: 20px;
+  padding: 11px 18px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-secondary);
+  font-size: 13px;
+  color: var(--text);
+  transition: all 0.15s ease;
+}
+
+.profile-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.profile-select {
+  width: 100%;
+  border-radius: 20px;
+  padding: 11px 18px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-secondary);
+  font-size: 13px;
+  color: var(--text);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.profile-select:focus {
+  border-color: var(--accent);
+  outline: none;
+  background: var(--surface);
+}
+
+.profile-field-hint {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 5px;
+  display: block;
+}
+
+.profile-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.profile-option-card {
+  border-radius: 18px;
+  border: 1.5px solid var(--border);
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-option-card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.profile-option-card.selected {
+  border-color: var(--accent);
+  background: rgba(249, 115, 22, 0.08);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.profile-option-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-option-desc {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 /* ── Unified Wizard Card ── */
 .unified-wizard-card {
   background: var(--surface);
