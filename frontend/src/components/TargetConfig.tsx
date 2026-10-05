@@ -14,6 +14,8 @@ import {
   Monitor,
   Code2,
   Bot,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 type TargetType = "cloud" | "local_llm" | "local_project" | "ai_agent";
@@ -203,6 +205,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
     new Set(ALL_CATEGORIES)
   );
   const [intensity, setIntensity] = useState<ScanIntensity>("standard");
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   // Custom Cases
   const [customCases, setCustomCases] = useState<CustomCaseInput[]>([]);
@@ -337,6 +340,10 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
       setSubmitting(false);
     }
   }
+
+  const visibleCategories = showAllCategories
+    ? ALL_CATEGORIES
+    : ALL_CATEGORIES.slice(0, 6);
 
   const totalCases = selectedCategories.size * activeIntensity.cases + customCases.length;
 
@@ -492,145 +499,178 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
            ────────────────────────────────────── */}
         {currentStep === 2 && (
           <>
-            {/* Section 1: Vulnerability Categories */}
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div className="profile-section-header">
-                  <div className="profile-accent-bar" />
-                  <span className="profile-section-title">VULNERABILITY CATEGORIES</span>
+            <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 24 }}>
+              {/* Left Column: Vulnerability Categories (6 initially + show 3 more toggle) */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div className="profile-section-header">
+                    <div className="profile-accent-bar" />
+                    <span className="profile-section-title">VULNERABILITY CATEGORIES</span>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    {onOpenHelp && (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => onOpenHelp()}
+                        style={{ color: "var(--accent)", gap: 4 }}
+                        type="button"
+                      >
+                        <HelpCircle size={13} />
+                        <span>Docs ↗</span>
+                      </button>
+                    )}
+                    <button className="btn btn-secondary btn-sm" onClick={selectAll} type="button">
+                      Select All
+                    </button>
+                    <button className="btn btn-secondary btn-sm" onClick={selectNone} type="button">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div className="profile-field-hint" style={{ marginBottom: 12 }}>
+                  Select security threat categories from the OWASP LLM 2025 matrix to include in this audit.
                 </div>
 
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  {onOpenHelp && (
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => onOpenHelp()}
-                      style={{ color: "var(--accent)", gap: 4 }}
-                      type="button"
-                    >
-                      <HelpCircle size={13} />
-                      <span>Docs ↗</span>
-                    </button>
-                  )}
-                  <button className="btn btn-secondary btn-sm" onClick={selectAll} type="button">
-                    Select All
-                  </button>
-                  <button className="btn btn-secondary btn-sm" onClick={selectNone} type="button">
-                    Clear
-                  </button>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                  {visibleCategories.map((cat) => {
+                    const meta = CATEGORY_DETAILS[cat];
+                    const sel = selectedCategories.has(cat);
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        className={`profile-option-card ${sel ? "selected" : ""}`}
+                        onClick={() => toggleCategory(cat)}
+                        style={{ padding: "12px 14px", borderRadius: 16 }}
+                      >
+                        <div className="profile-option-title" style={{ fontSize: 12.5 }}>
+                          <span>{meta.label}</span>
+                          <span style={{ fontSize: 11, color: sel ? "var(--accent)" : "transparent" }}>✓</span>
+                        </div>
+                        <span className="profile-option-desc" style={{ fontSize: 11 }}>{meta.desc}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-              </div>
-              <div className="profile-field-hint" style={{ marginBottom: 12 }}>
-                Select security threat categories from the OWASP LLM 2025 matrix to include in this audit.
+
+                {ALL_CATEGORIES.length > 6 && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ marginTop: 10, alignSelf: "flex-start", color: "var(--accent)", gap: 4 }}
+                    onClick={() => setShowAllCategories(!showAllCategories)}
+                    type="button"
+                  >
+                    {showAllCategories ? (
+                      <>
+                        <ChevronUp size={13} /> Show less categories
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown size={13} /> Show {ALL_CATEGORIES.length - 6} more categories
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-                {ALL_CATEGORIES.map((cat) => {
-                  const meta = CATEGORY_DETAILS[cat];
-                  const sel = selectedCategories.has(cat);
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      className={`profile-option-card ${sel ? "selected" : ""}`}
-                      onClick={() => toggleCategory(cat)}
-                      style={{ padding: "12px 14px", borderRadius: 16 }}
-                    >
-                      <div className="profile-option-title" style={{ fontSize: 12.5 }}>
-                        <span>{meta.label}</span>
-                        <span style={{ fontSize: 11, color: sel ? "var(--accent)" : "transparent" }}>✓</span>
-                      </div>
-                      <span className="profile-option-desc" style={{ fontSize: 11 }}>{meta.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Section 2: Scan Intensity */}
-            <div style={{ marginTop: 8 }}>
-              <div className="profile-section-header">
-                <div className="profile-accent-bar" />
-                <span className="profile-section-title">SCAN INTENSITY LEVEL</span>
-              </div>
-              <div className="profile-field-hint" style={{ marginBottom: 12 }}>
-                Choose how many adversarial test probes to execute per attack vector.
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-                {INTENSITIES.map((opt) => {
-                  const sel = intensity === opt.key;
-                  return (
-                    <div
-                      key={opt.key}
-                      className={`profile-option-card ${sel ? "selected" : ""}`}
-                      onClick={() => setIntensity(opt.key)}
-                      style={{ padding: "14px 16px" }}
-                    >
-                      <div className="profile-option-title">
-                        <span>{opt.label}</span>
-                        {sel && <span style={{ color: "var(--accent)" }}>✓</span>}
-                      </div>
-                      <div className="profile-option-desc">{opt.desc}</div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Scope Summary Box */}
-              <div
-                style={{
-                  background: "var(--bg-secondary)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 16,
-                  padding: "14px 18px",
-                  marginTop: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
+              {/* Right Column: Scan Intensity */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    PROJECTED AUDIT SCOPE
+                  <div className="profile-section-header">
+                    <div className="profile-accent-bar" />
+                    <span className="profile-section-title">SCAN INTENSITY LEVEL</span>
                   </div>
-                  <div style={{ fontSize: 12.5, color: "var(--text)", marginTop: 2 }}>
-                    Target: <strong style={{ color: "var(--accent)" }}>{targetModel || "target-app"}</strong> • {selectedCategories.size} of 9 OWASP vectors active
+                  <div className="profile-field-hint" style={{ marginBottom: 12 }}>
+                    Choose how many adversarial test probes to execute per attack vector.
                   </div>
-                </div>
 
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)" }}>
-                    {totalCases} Total Probes
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--muted)" }}>
-                    Est. execution time ~{intensity === "standard" ? "2" : intensity === "deep" ? "4" : "8"} min
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {INTENSITIES.map((opt) => {
+                      const sel = intensity === opt.key;
+                      return (
+                        <div
+                          key={opt.key}
+                          className={`profile-option-card ${sel ? "selected" : ""}`}
+                          onClick={() => setIntensity(opt.key)}
+                          style={{ padding: "12px 16px" }}
+                        >
+                          <div className="profile-option-title">
+                            <span>{opt.label}</span>
+                            {sel && <span style={{ color: "var(--accent)" }}>✓</span>}
+                          </div>
+                          <div className="profile-option-desc">{opt.desc}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Footer Action Bar */}
-            <div className="wizard-action-bar">
-              <button
-                className="btn btn-secondary"
-                onClick={() => validateAndNextStep(1)}
-                type="button"
-                style={{ gap: 6, borderRadius: 20, padding: "9px 20px" }}
-              >
-                <ArrowLeft size={14} />
-                <span>Back</span>
-              </button>
+            {/* Clean Horizontal Summary Card at Bottom */}
+            <div className="run-summary-card horizontal" style={{ marginTop: 20 }}>
+              <div className="run-summary-header-row">
+                <div className="run-summary-title">
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Configuration Summary</span>
+                  <span className="run-summary-sublabel">• Live scan scope projection</span>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => validateAndNextStep(1)}
+                    type="button"
+                    style={{ gap: 4, borderRadius: 18 }}
+                  >
+                    <ArrowLeft size={13} />
+                    <span>Back</span>
+                  </button>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => validateAndNextStep(3)}
+                    type="button"
+                    style={{ gap: 4, borderRadius: 18 }}
+                  >
+                    <span>Next: Custom & Relay</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              </div>
 
-              <button
-                className="btn btn-primary"
-                onClick={() => validateAndNextStep(3)}
-                type="button"
-                style={{ gap: 6, borderRadius: 20, padding: "10px 22px" }}
-              >
-                <span>Next: Custom & Relay</span>
-                <ArrowRight size={14} />
-              </button>
+              <div className="run-summary-grid-horizontal">
+                <div className="run-summary-item">
+                  <span className="run-summary-key">Target</span>
+                  <span className="run-summary-val truncate" title={targetEndpoint}>
+                    {targetModel || "target-app"}
+                  </span>
+                </div>
+                <div className="run-summary-item">
+                  <span className="run-summary-key">Categories</span>
+                  <span className="run-summary-val">
+                    {selectedCategories.size} of {ALL_CATEGORIES.length}
+                  </span>
+                </div>
+                <div className="run-summary-item">
+                  <span className="run-summary-key">Cases / cat</span>
+                  <span className="run-summary-val">{activeIntensity.cases}</span>
+                </div>
+                <div className="run-summary-item">
+                  <span className="run-summary-key">Custom cases</span>
+                  <span className="run-summary-val">{customCases.length}</span>
+                </div>
+                <div className="run-summary-item">
+                  <span className="run-summary-key">Total probes</span>
+                  <span className="run-summary-val" style={{ color: "var(--accent)" }}>
+                    {totalCases}
+                  </span>
+                </div>
+                <div className="run-summary-item">
+                  <span className="run-summary-key">Est. time</span>
+                  <span className="run-summary-val">
+                    ~{intensity === "standard" ? "2" : intensity === "deep" ? "4" : "8"} min
+                  </span>
+                </div>
+              </div>
             </div>
           </>
         )}
@@ -644,10 +684,10 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
             <div>
               <div className="profile-section-header">
                 <div className="profile-accent-bar" />
-                <span className="profile-section-title">EXECUTION MODE</span>
+                <span className="profile-section-title">EXECUTION MODE (PROBE DELIVERY)</span>
               </div>
               <div className="profile-field-hint" style={{ marginBottom: 12 }}>
-                Select whether to dispatch probes directly from backend or route via local relay process.
+                Choose how the security scanner engine connects to your target model or agent.
               </div>
 
               <div className="profile-option-grid">
@@ -658,24 +698,24 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                     onClick={() => setExecutionMode(mode)}
                   >
                     <div className="profile-option-title">
-                      <span>{mode === "local" ? "Local Direct Execution" : "Cloud Relay Agent"}</span>
+                      <span>{mode === "local" ? "Local Direct Execution (Default)" : "Cloud Relay Agent (Firewall Bypass)"}</span>
                       {executionMode === mode && <span style={{ color: "var(--accent)" }}>✓</span>}
                     </div>
                     <div className="profile-option-desc">
                       {mode === "local"
-                        ? "Scans directly from backend server to target endpoint."
-                        : "Dispatches probes to local agent over secure WebSocket."}
+                        ? "Recommended for public cloud APIs (OpenAI, Groq), local models on your computer (Ollama http://localhost:11434, LM Studio), or local dev servers. The scanner sends attack payloads directly over HTTP."
+                        : "Recommended for private AI agents, internal corporate models, or endpoints behind a firewall/VPN. Routes probes through a secure Relay Agent Python script over WebSocket."}
                     </div>
                   </div>
                 ))}
               </div>
 
-              {executionMode === "relay" && (
+              {executionMode === "relay" ? (
                 <div style={{ marginTop: 14 }}>
                   <div className="profile-field-label">Connected Agent <span style={{ color: "#EF4444" }}>*</span></div>
                   {connectedAgents.length === 0 ? (
-                    <div className="notice-banner" style={{ marginTop: 4, fontSize: 12 }}>
-                      No agents connected. Run: <code>python agent/relay_agent.py --agent-id my-laptop</code>
+                    <div className="notice-banner" style={{ marginTop: 6, fontSize: 12 }}>
+                      💡 No agents connected. On your private machine, run: <code>python agent/relay_agent.py --agent-id my-laptop</code>
                     </div>
                   ) : (
                     <select
@@ -691,8 +731,12 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                       ))}
                     </select>
                   )}
-                  <span className="profile-field-hint">Select the active relay process to dispatch probes through.</span>
+                  <span className="profile-field-hint">Select the active relay process running inside your private network to route probes.</span>
                 </div>
+              ) : (
+                <span className="profile-field-hint" style={{ marginTop: 8 }}>
+                  🔒 Scanner backend will connect directly to <strong>{targetEndpoint || "your target endpoint"}</strong> over HTTP.
+                </span>
               )}
             </div>
 
@@ -909,7 +953,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                   className="btn btn-secondary"
                   onClick={() => validateAndNextStep(3)}
                   type="button"
-                  style={{ gap: 6, borderRadius: 20, padding: "9px 20px" }}
+                  style={{ gap: 6, borderRadius: 20, padding: "8px 18px" }}
                 >
                   <ArrowLeft size={14} />
                   <span>Back</span>
