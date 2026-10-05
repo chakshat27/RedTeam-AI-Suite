@@ -1348,59 +1348,49 @@ pre, code {
 /* ============================================================
    STEPPER WIZARD & SCAN CONFIGURATION
    ============================================================ */
-/* ── Clean Minimalist Stepper ── */
-.wizard-stepper-clean {
+/* ── Clean Light Stepper Progress Indicator ── */
+.wizard-stepper-bare {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  padding: 6px 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 0 4px;
 }
 
-.wizard-step-pill {
-  flex: 1;
+.wizard-stepper-item {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--r-lg);
-  padding: 8px 12px;
+  border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
-  font-size: 12.5px;
+  padding: 4px 0;
+  font-size: 13px;
   font-weight: 500;
   color: var(--muted);
+  transition: all 0.15s ease;
   user-select: none;
 }
 
-.wizard-step-pill:hover {
+.wizard-stepper-item:hover {
   color: var(--text);
-  background: var(--surface-hover);
 }
 
-.wizard-step-pill.active {
-  background: var(--bg-secondary);
-  border-color: rgba(249, 115, 22, 0.35);
-  color: var(--text);
+.wizard-stepper-item.active {
+  color: var(--accent);
   font-weight: 600;
-  box-shadow: 0 1px 4px rgba(249, 115, 22, 0.08);
 }
 
-.wizard-step-pill.completed {
+.wizard-stepper-item.completed {
   color: var(--text);
 }
 
-.wizard-step-badge {
-  width: 20px;
-  height: 20px;
+.wizard-stepper-num {
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--surface-hover);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   color: var(--muted);
   font-size: 11px;
   font-weight: 700;
@@ -1411,24 +1401,23 @@ pre, code {
   transition: all 0.15s ease;
 }
 
-.wizard-step-pill.active .wizard-step-badge {
+.wizard-stepper-item.active .wizard-stepper-num {
   background: var(--accent);
+  border-color: var(--accent);
   color: #FFFFFF;
 }
 
-.wizard-step-pill.completed .wizard-step-badge {
+.wizard-stepper-item.completed .wizard-stepper-num {
   background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
   color: #10b981;
 }
 
-.wizard-step-opt {
-  font-size: 10px;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 1px 6px;
-  border-radius: 10px;
-  margin-left: 2px;
+.wizard-stepper-divider {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  min-width: 16px;
 }
 
 /* ── Profile Wizard Design System (Reference Inspired) ── */

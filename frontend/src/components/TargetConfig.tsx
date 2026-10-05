@@ -1,15 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { ALL_CATEGORIES, type AttackCategory } from "../types";
 import { api, type CustomCaseInput } from "../api";
 import { useAuth } from "../context/AuthContext";
 import {
-  Target,
-  Settings,
   Plus,
   Trash2,
-  Zap,
   HelpCircle,
-  CheckCircle2,
   ArrowRight,
   ArrowLeft,
   Play,
@@ -18,7 +14,6 @@ import {
   Monitor,
   Code2,
   Bot,
-  Lock,
 } from "lucide-react";
 
 type TargetType = "cloud" | "local_llm" | "local_project" | "ai_agent";
@@ -42,52 +37,52 @@ const TARGET_TYPES: TargetTypeConfig[] = [
     key: "cloud",
     icon: <Cloud size={16} />,
     label: "Cloud LLM API",
-    sublabel: "OpenAI, Groq, Azure, Together AI…",
+    sublabel: "OpenAI, Groq, Anthropic...",
     endpointPlaceholder: "https://api.openai.com/v1",
     endpointDefault: "https://api.openai.com/v1",
     modelPlaceholder: "gpt-4o",
     authRequired: true,
-    authHint: "- API key required (processed in-memory only).",
-    endpointHint: "- OpenAI-compatible cloud endpoint.",
+    authHint: "API key required. Credentials are processed in memory only and are never stored on disk.",
+    endpointHint: "OpenAI-compatible endpoint used to connect to the target application.",
     executionMode: "local",
   },
   {
     key: "local_llm",
     icon: <Monitor size={16} />,
-    label: "Local LLM Server",
-    sublabel: "Ollama, LM Studio, vLLM…",
+    label: "Local LLM",
+    sublabel: "Ollama, LM Studio, vLLM...",
     endpointPlaceholder: "http://localhost:11434/v1",
     endpointDefault: "http://localhost:11434/v1",
     modelPlaceholder: "llama3:8b",
     authRequired: false,
-    authHint: "- Usually not required for localhost models.",
-    endpointHint: "- Ollama: :11434 · LM Studio: :1234 · vLLM: :8000",
+    authHint: "Usually not required for localhost models. Credentials are processed in memory only.",
+    endpointHint: "Local LLM server endpoint (Ollama :11434, LM Studio :1234, vLLM :8000).",
     executionMode: "local",
   },
   {
     key: "local_project",
     icon: <Code2 size={16} />,
-    label: "Custom App Backend",
-    sublabel: "FastAPI, Flask, Express, LangChain…",
+    label: "Custom Backend",
+    sublabel: "FastAPI, Flask, Express...",
     endpointPlaceholder: "http://localhost:8001/v1",
     endpointDefault: "http://localhost:8001/v1",
     modelPlaceholder: "target-app",
     authRequired: false,
-    authHint: "- Optional Bearer token if enforced by your app.",
-    endpointHint: "- Local project exposing /v1/chat/completions",
+    authHint: "Optional Bearer token if enforced by your app. Processed in memory only.",
+    endpointHint: "Your local project endpoint exposing OpenAI-compatible /v1/chat/completions.",
     executionMode: "local",
   },
   {
     key: "ai_agent",
     icon: <Bot size={16} />,
     label: "AI Agent (Relay)",
-    sublabel: "Private / firewalled enterprise agents",
+    sublabel: "Private / firewalled agents",
     endpointPlaceholder: "http://internal-agent:8080/v1",
     endpointDefault: "",
     modelPlaceholder: "agent-v1",
     authRequired: false,
-    authHint: "- Optional. Probes sent over secure WebSocket.",
-    endpointHint: "- Private agent — probes dispatched via local Relay Agent.",
+    authHint: "Optional. Probes are forwarded securely over WebSocket via a local Relay Agent.",
+    endpointHint: "Private agent endpoint behind a firewall — dispatched via local Relay Agent process.",
     executionMode: "relay",
   },
 ];
@@ -146,28 +141,28 @@ const INTENSITIES = [
   {
     key: "standard" as ScanIntensity,
     label: "Standard Scan",
-    desc: "5 probes / category • Fast sanity check",
+    desc: "5 probes per category • Rapid sanity check (~2 min)",
     cases: 5,
   },
   {
     key: "deep" as ScanIntensity,
     label: "Deep Audit",
-    desc: "10 probes / category • Multi-stage bypass testing",
+    desc: "10 probes per category • Multi-stage bypass testing (~4 min)",
     cases: 10,
   },
   {
     key: "audit" as ScanIntensity,
     label: "Thorough Audit",
-    desc: "20 probes / category • Complete stress test",
+    desc: "20 probes per category • Exhaustive stress test (~8 min)",
     cases: 20,
   },
 ];
 
 const WIZARD_STEPS = [
-  { id: 1, title: "Target Setup", subtitle: "Endpoint & Auth", optional: false },
-  { id: 2, title: "Attack Scope", subtitle: "Categories & Intensity", optional: false },
-  { id: 3, title: "Custom & Relay", subtitle: "Edge cases & Relay", optional: true },
-  { id: 4, title: "Review & Launch", subtitle: "Confirm & Start Scan", optional: false },
+  { id: 1, title: "Target Setup", optional: false },
+  { id: 2, title: "Attack Scope", optional: false },
+  { id: 3, title: "Custom & Relay", optional: true },
+  { id: 4, title: "Review & Launch", optional: false },
 ];
 
 export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
@@ -347,25 +342,28 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
 
   return (
     <div style={{ maxWidth: 940, margin: "0 auto" }}>
-      {/* ── Minimal Stepper Tab Bar ── */}
-      <div className="wizard-stepper-clean">
-        {WIZARD_STEPS.map((s) => {
+      {/* ── Light Progress Navigation Stepper ── */}
+      <div className="wizard-stepper-bare">
+        {WIZARD_STEPS.map((s, idx) => {
           const isActive = currentStep === s.id;
           const isCompleted = currentStep > s.id;
 
           return (
-            <button
-              key={s.id}
-              className={`wizard-step-pill ${isActive ? "active" : ""} ${
-                isCompleted ? "completed" : ""
-              }`}
-              onClick={() => validateAndNextStep(s.id)}
-              type="button"
-            >
-              <span className="wizard-step-badge">{isCompleted ? "✓" : s.id}</span>
-              <span>{s.title}</span>
-              {s.optional && <span className="wizard-step-opt">Optional</span>}
-            </button>
+            <Fragment key={s.id}>
+              <button
+                className={`wizard-stepper-item ${isActive ? "active" : ""} ${
+                  isCompleted ? "completed" : ""
+                }`}
+                onClick={() => validateAndNextStep(s.id)}
+                type="button"
+              >
+                <span className="wizard-stepper-num">{isCompleted ? "✓" : s.id}</span>
+                <span>{s.title}</span>
+                {s.optional && <span className="profile-badge-optional">OPTIONAL</span>}
+              </button>
+
+              {idx < WIZARD_STEPS.length - 1 && <div className="wizard-stepper-divider" />}
+            </Fragment>
           );
         })}
       </div>
@@ -378,23 +376,23 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
         </div>
       )}
 
-      {/* ── Role Profile Style Card Container ── */}
+      {/* ── Single Surface Card Container ── */}
       <div className="profile-wizard-card">
         {/* ──────────────────────────────────────
             STEP 1: Target Setup
            ────────────────────────────────────── */}
         {currentStep === 1 && (
           <>
-            <div className="profile-section-header">
-              <div className="profile-accent-bar" />
-              <span className="profile-section-title">STEP 1 • TARGET APPLICATION PROFILE</span>
-            </div>
-
-            {/* Target Architecture Cards Grid */}
+            {/* Section 1: Target Architecture */}
             <div>
-              <div className="profile-field-label">
-                Which best describes your target architecture?
+              <div className="profile-section-header">
+                <div className="profile-accent-bar" />
+                <span className="profile-section-title">TARGET ARCHITECTURE</span>
               </div>
+              <div className="profile-field-hint" style={{ marginBottom: 12 }}>
+                Select the deployment model you want to assess.
+              </div>
+
               <div className="profile-option-grid">
                 {TARGET_TYPES.map((t) => (
                   <button
@@ -415,8 +413,13 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
               </div>
             </div>
 
-            {/* Form Fields */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Section 2: Connection Details */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <div className="profile-section-header">
+                <div className="profile-accent-bar" />
+                <span className="profile-section-title">CONNECTION DETAILS</span>
+              </div>
+
               <div>
                 <div className="profile-field-label">
                   Endpoint URL <span style={{ color: "#EF4444" }}>*</span>
@@ -463,28 +466,9 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                     placeholder={activeTargetType.modelPlaceholder}
                   />
                   <span className="profile-field-hint">
-                    - Target model ID (defaults to "{activeTargetType.modelPlaceholder}")
+                    Target model ID. Leave empty to use default ("{activeTargetType.modelPlaceholder}").
                   </span>
                 </div>
-              </div>
-
-              <div
-                style={{
-                  background: "var(--bg-secondary)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 16,
-                  padding: "10px 16px",
-                  fontSize: 12,
-                  color: "var(--muted)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <Lock size={13} className="text-accent" />
-                <span>
-                  Credentials processed in-memory only — zero disk persistence.
-                </span>
               </div>
             </div>
 
@@ -494,7 +478,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 className="btn btn-primary"
                 onClick={() => validateAndNextStep(2)}
                 type="button"
-                style={{ gap: 6, borderRadius: 20, padding: "10px 20px" }}
+                style={{ gap: 6, borderRadius: 20, padding: "10px 22px" }}
               >
                 <span>Next: Attack Scope</span>
                 <ArrowRight size={14} />
@@ -508,113 +492,119 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
            ────────────────────────────────────── */}
         {currentStep === 2 && (
           <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div className="profile-section-header">
-                <div className="profile-accent-bar" />
-                <span className="profile-section-title">STEP 2 • ATTACK SCOPE & INTENSITY</span>
+            {/* Section 1: Vulnerability Categories */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div className="profile-section-header">
+                  <div className="profile-accent-bar" />
+                  <span className="profile-section-title">VULNERABILITY CATEGORIES</span>
+                </div>
+
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  {onOpenHelp && (
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => onOpenHelp()}
+                      style={{ color: "var(--accent)", gap: 4 }}
+                      type="button"
+                    >
+                      <HelpCircle size={13} />
+                      <span>Docs ↗</span>
+                    </button>
+                  )}
+                  <button className="btn btn-secondary btn-sm" onClick={selectAll} type="button">
+                    Select All
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={selectNone} type="button">
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <div className="profile-field-hint" style={{ marginBottom: 12 }}>
+                Select security threat categories from the OWASP LLM 2025 matrix to include in this audit.
               </div>
 
-              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                {onOpenHelp && (
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => onOpenHelp()}
-                    style={{ color: "var(--accent)", gap: 4 }}
-                    type="button"
-                  >
-                    <HelpCircle size={13} />
-                    <span>Docs ↗</span>
-                  </button>
-                )}
-                <button className="btn btn-secondary btn-sm" onClick={selectAll} type="button">
-                  Select All
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={selectNone} type="button">
-                  Clear
-                </button>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                {ALL_CATEGORIES.map((cat) => {
+                  const meta = CATEGORY_DETAILS[cat];
+                  const sel = selectedCategories.has(cat);
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={`profile-option-card ${sel ? "selected" : ""}`}
+                      onClick={() => toggleCategory(cat)}
+                      style={{ padding: "12px 14px", borderRadius: 16 }}
+                    >
+                      <div className="profile-option-title" style={{ fontSize: 12.5 }}>
+                        <span>{meta.label}</span>
+                        <span style={{ fontSize: 11, color: sel ? "var(--accent)" : "transparent" }}>✓</span>
+                      </div>
+                      <span className="profile-option-desc" style={{ fontSize: 11 }}>{meta.desc}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20 }}>
-              {/* Left Column: All 9 Vulnerability Categories */}
-              <div>
-                <div className="profile-field-label">
-                  Vulnerability Categories ({selectedCategories.size} / {ALL_CATEGORIES.length})
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-                  {ALL_CATEGORIES.map((cat) => {
-                    const meta = CATEGORY_DETAILS[cat];
-                    const sel = selectedCategories.has(cat);
-                    return (
-                      <button
-                        key={cat}
-                        type="button"
-                        className={`profile-option-card ${sel ? "selected" : ""}`}
-                        onClick={() => toggleCategory(cat)}
-                        style={{ padding: "10px 12px", borderRadius: 14 }}
-                      >
-                        <div className="profile-option-title" style={{ fontSize: 12 }}>
-                          <span>{meta.label}</span>
-                          <span style={{ fontSize: 10, color: sel ? "var(--accent)" : "transparent" }}>✓</span>
-                        </div>
-                        <span className="profile-option-desc" style={{ fontSize: 10.5 }}>{meta.desc}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* Section 2: Scan Intensity */}
+            <div style={{ marginTop: 8 }}>
+              <div className="profile-section-header">
+                <div className="profile-accent-bar" />
+                <span className="profile-section-title">SCAN INTENSITY LEVEL</span>
+              </div>
+              <div className="profile-field-hint" style={{ marginBottom: 12 }}>
+                Choose how many adversarial test probes to execute per attack vector.
               </div>
 
-              {/* Right Column: Scan Intensity */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                {INTENSITIES.map((opt) => {
+                  const sel = intensity === opt.key;
+                  return (
+                    <div
+                      key={opt.key}
+                      className={`profile-option-card ${sel ? "selected" : ""}`}
+                      onClick={() => setIntensity(opt.key)}
+                      style={{ padding: "14px 16px" }}
+                    >
+                      <div className="profile-option-title">
+                        <span>{opt.label}</span>
+                        {sel && <span style={{ color: "var(--accent)" }}>✓</span>}
+                      </div>
+                      <div className="profile-option-desc">{opt.desc}</div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Scope Summary Box */}
+              <div
+                style={{
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 16,
+                  padding: "14px 18px",
+                  marginTop: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
                 <div>
-                  <div className="profile-field-label">Scan Intensity Level</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {INTENSITIES.map((opt) => {
-                      const sel = intensity === opt.key;
-                      return (
-                        <div
-                          key={opt.key}
-                          className={`profile-option-card ${sel ? "selected" : ""}`}
-                          onClick={() => setIntensity(opt.key)}
-                          style={{ padding: "12px 16px" }}
-                        >
-                          <div className="profile-option-title">
-                            <span>{opt.label}</span>
-                            {sel && <span style={{ color: "var(--accent)" }}>✓</span>}
-                          </div>
-                          <div className="profile-option-desc">{opt.desc}</div>
-                        </div>
-                      );
-                    })}
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    PROJECTED AUDIT SCOPE
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--text)", marginTop: 2 }}>
+                    Target: <strong style={{ color: "var(--accent)" }}>{targetModel || "target-app"}</strong> • {selectedCategories.size} of 9 OWASP vectors active
                   </div>
                 </div>
 
-                {/* Scope Summary Box */}
-                <div
-                  style={{
-                    background: "var(--bg-secondary)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 16,
-                    padding: "14px 16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                  }}
-                >
-                  <span className="profile-section-title">LIVE SCOPE PROJECTION</span>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    <div>
-                      <div style={{ fontSize: 10.5, color: "var(--muted)" }}>Target Model</div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }} className="truncate">
-                        {targetModel || "target-app"}
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10.5, color: "var(--muted)" }}>Total Probes</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
-                        {totalCases} cases
-                      </div>
-                    </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)" }}>
+                    {totalCases} Total Probes
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                    Est. execution time ~{intensity === "standard" ? "2" : intensity === "deep" ? "4" : "8"} min
                   </div>
                 </div>
               </div>
@@ -626,7 +616,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 className="btn btn-secondary"
                 onClick={() => validateAndNextStep(1)}
                 type="button"
-                style={{ gap: 6, borderRadius: 20, padding: "8px 18px" }}
+                style={{ gap: 6, borderRadius: 20, padding: "9px 20px" }}
               >
                 <ArrowLeft size={14} />
                 <span>Back</span>
@@ -636,7 +626,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 className="btn btn-primary"
                 onClick={() => validateAndNextStep(3)}
                 type="button"
-                style={{ gap: 6, borderRadius: 20, padding: "9px 20px" }}
+                style={{ gap: 6, borderRadius: 20, padding: "10px 22px" }}
               >
                 <span>Next: Custom & Relay</span>
                 <ArrowRight size={14} />
@@ -650,15 +640,16 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
            ────────────────────────────────────── */}
         {currentStep === 3 && (
           <>
-            <div className="profile-section-header">
-              <div className="profile-accent-bar" />
-              <span className="profile-section-title">STEP 3 • CUSTOM PAYLOADS & EXECUTION MODE</span>
-              <span className="profile-badge-optional">OPTIONAL</span>
-            </div>
-
-            {/* Execution Mode Options Cards */}
+            {/* Section 1: Execution Mode */}
             <div>
-              <div className="profile-field-label">Execution Mode</div>
+              <div className="profile-section-header">
+                <div className="profile-accent-bar" />
+                <span className="profile-section-title">EXECUTION MODE</span>
+              </div>
+              <div className="profile-field-hint" style={{ marginBottom: 12 }}>
+                Select whether to dispatch probes directly from backend or route via local relay process.
+              </div>
+
               <div className="profile-option-grid">
                 {(["local", "relay"] as const).map((mode) => (
                   <div
@@ -681,7 +672,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
 
               {executionMode === "relay" && (
                 <div style={{ marginTop: 14 }}>
-                  <div className="profile-field-label">Connected Agent</div>
+                  <div className="profile-field-label">Connected Agent <span style={{ color: "#EF4444" }}>*</span></div>
                   {connectedAgents.length === 0 ? (
                     <div className="notice-banner" style={{ marginTop: 4, fontSize: 12 }}>
                       No agents connected. Run: <code>python agent/relay_agent.py --agent-id my-laptop</code>
@@ -700,18 +691,25 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                       ))}
                     </select>
                   )}
+                  <span className="profile-field-hint">Select the active relay process to dispatch probes through.</span>
                 </div>
               )}
             </div>
 
-            {/* Custom Cases Section */}
-            <div>
-              <div className="profile-field-label">
-                Custom Adversarial Prompts <span className="profile-badge-optional">OPTIONAL</span>
+            {/* Section 2: Custom Cases */}
+            <div style={{ marginTop: 8 }}>
+              <div className="profile-section-header">
+                <div className="profile-accent-bar" />
+                <span className="profile-section-title">CUSTOM ADVERSARIAL PROMPTS</span>
+                <span className="profile-badge-optional">OPTIONAL</span>
               </div>
+              <div className="profile-field-hint" style={{ marginBottom: 12 }}>
+                Add proprietary edge cases or benchmark prompts specific to your application context.
+              </div>
+
               <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr auto", gap: 10, alignItems: "flex-end" }}>
                 <div>
-                  <label style={{ fontSize: 11, marginBottom: 4, display: "block" }}>Category</label>
+                  <div className="profile-field-label" style={{ fontSize: 12 }}>Category</div>
                   <select
                     className="profile-select"
                     style={{ padding: "9px 14px", fontSize: 12 }}
@@ -727,7 +725,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 11, marginBottom: 4, display: "block" }}>Adversarial Prompt</label>
+                  <div className="profile-field-label" style={{ fontSize: 12 }}>Adversarial Prompt <span style={{ color: "#EF4444" }}>*</span></div>
                   <input
                     type="text"
                     className="profile-input"
@@ -740,7 +738,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 11, marginBottom: 4, display: "block" }}>Expected Failure</label>
+                  <div className="profile-field-label" style={{ fontSize: 12 }}>Expected Failure <span className="profile-badge-optional">OPTIONAL</span></div>
                   <input
                     type="text"
                     className="profile-input"
@@ -767,7 +765,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                     border: "1px solid var(--border)",
                     borderRadius: 14,
                     overflow: "hidden",
-                    marginTop: 12,
+                    marginTop: 14,
                   }}
                 >
                   <table style={{ margin: 0 }}>
@@ -819,7 +817,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 className="btn btn-secondary"
                 onClick={() => validateAndNextStep(2)}
                 type="button"
-                style={{ gap: 6, borderRadius: 20, padding: "8px 18px" }}
+                style={{ gap: 6, borderRadius: 20, padding: "9px 20px" }}
               >
                 <ArrowLeft size={14} />
                 <span>Back</span>
@@ -829,7 +827,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                 className="btn btn-primary"
                 onClick={() => validateAndNextStep(4)}
                 type="button"
-                style={{ gap: 6, borderRadius: 20, padding: "9px 20px" }}
+                style={{ gap: 6, borderRadius: 20, padding: "10px 22px" }}
               >
                 <span>Next: Review & Launch</span>
                 <ArrowRight size={14} />
@@ -843,44 +841,57 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
            ────────────────────────────────────── */}
         {currentStep === 4 && (
           <>
-            <div className="profile-section-header">
-              <div className="profile-accent-bar" />
-              <span className="profile-section-title">STEP 4 • REVIEW & LAUNCH AUDIT</span>
-            </div>
-
-            {/* Parameter Review Cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-              <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
-                <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Target Endpoint</div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", marginTop: 3 }} className="truncate" title={targetEndpoint}>
-                  {targetEndpoint}
-                </div>
-              </div>
-
-              <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
-                <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Model ID</div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", marginTop: 3 }}>
-                  {targetModel || "target-app"}
-                </div>
-              </div>
-
-              <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
-                <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Execution Mode</div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", marginTop: 3, textTransform: "capitalize" }}>
-                  {executionMode}
-                </div>
-              </div>
-
-              <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
-                <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Scan Scope</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", marginTop: 3 }}>
-                  {totalCases} probes ({selectedCategories.size} cats)
-                </div>
-              </div>
-            </div>
-
-            {/* Selected Categories */}
             <div>
+              <div className="profile-section-header">
+                <div className="profile-accent-bar" />
+                <span className="profile-section-title">REVIEW AUDIT CONFIGURATION</span>
+              </div>
+              <div className="profile-field-hint" style={{ marginBottom: 14 }}>
+                Verify your target configuration and attack scope before launching the execution.
+              </div>
+
+              {/* Parameter Review Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+                <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Target Endpoint</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", marginTop: 3 }} className="truncate" title={targetEndpoint}>
+                    {targetEndpoint}
+                  </div>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", marginTop: 2 }}>{targetType} architecture</div>
+                </div>
+
+                <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Model ID</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", marginTop: 3 }}>
+                    {targetModel || "target-app"}
+                  </div>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", marginTop: 2 }}>Target identifier</div>
+                </div>
+
+                <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Execution Mode</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", marginTop: 3, textTransform: "capitalize" }}>
+                    {executionMode}
+                  </div>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", marginTop: 2 }}>
+                    {executionMode === "relay" ? `Agent: ${selectedAgentId}` : "Direct server scan"}
+                  </div>
+                </div>
+
+                <div style={{ background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 16, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", textTransform: "uppercase", fontWeight: 700 }}>Total Probes</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)", marginTop: 3 }}>
+                    {totalCases} Payloads
+                  </div>
+                  <div style={{ fontSize: 10.5, color: "var(--muted)", marginTop: 2 }}>
+                    {activeIntensity.label} ({activeIntensity.cases}/cat)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Categories */}
+            <div style={{ marginTop: 8 }}>
               <div className="profile-field-label">Active Vulnerability Vectors ({selectedCategories.size})</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {Array.from(selectedCategories).map((cat) => (
@@ -898,7 +909,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                   className="btn btn-secondary"
                   onClick={() => validateAndNextStep(3)}
                   type="button"
-                  style={{ gap: 6, borderRadius: 20, padding: "8px 18px" }}
+                  style={{ gap: 6, borderRadius: 20, padding: "9px 20px" }}
                 >
                   <ArrowLeft size={14} />
                   <span>Back</span>
