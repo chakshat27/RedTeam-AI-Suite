@@ -11,6 +11,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Shield,
+  LayoutDashboard,
   Settings2,
   Activity,
   FileWarning,
@@ -30,6 +31,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import LandingPage from "./components/LandingPage";
+import HomeDashboard from "./components/HomeDashboard";
 import TargetConfig from "./components/TargetConfig";
 import RunDashboard from "./components/RunDashboard";
 import VulnerabilityReportView from "./components/VulnerabilityReport";
@@ -104,7 +106,7 @@ function Sidebar({
           <div
             className="sidebar-logo"
             onClick={() => {
-              navigate("/");
+              navigate(user ? "/home" : "/");
               onCloseMobile();
             }}
             role="button"
@@ -142,9 +144,21 @@ function Sidebar({
         {/* Main Nav Items */}
         <nav className="sidebar-nav">
           <button
+            className={`sidebar-nav-item ${activeTab === "home" ? "active" : ""}`}
+            onClick={() => handleNavClick("/home")}
+            title="Overview & Command Center"
+            data-tooltip="Overview"
+          >
+            <div className="sidebar-nav-icon">
+              <LayoutDashboard size={18} strokeWidth={1.8} />
+            </div>
+            {!isCollapsed && <span className="sidebar-nav-label">Overview</span>}
+          </button>
+
+          <button
             className={`sidebar-nav-item ${activeTab === "configure" ? "active" : ""}`}
             onClick={() => handleNavClick("/configure")}
-            title="Configure Target"
+            title="Configure Scan"
             data-tooltip="Configure"
           >
             <div className="sidebar-nav-icon">
@@ -281,6 +295,7 @@ function PageHeader({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const titleMap: Record<string, string> = {
+    home: "Command Center",
     configure: "Configure Scan",
     dashboard: "Live Attack Dashboard",
     report: "Vulnerability Assessment Report",
@@ -303,7 +318,7 @@ function PageHeader({
         {isLanding ? (
           <div
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate("/")}
+            onClick={() => navigate(user ? "/home" : "/")}
           >
             <div className="sidebar-logo-icon" style={{ width: 28, height: 28 }}>
               <Shield size={15} />
@@ -312,7 +327,7 @@ function PageHeader({
           </div>
         ) : (
           <div className="page-header-title">
-            <span>{titleMap[activeTab] || "Dashboard"}</span>
+            <span>{titleMap[activeTab] || "Command Center"}</span>
           </div>
         )}
       </div>
@@ -499,7 +514,8 @@ function AppContent() {
     reportRunId ?? (path.match(/^\/report\/(.+)$/)?.[1] ?? null);
 
   let activeTab = "";
-  if (path.startsWith("/configure")) activeTab = "configure";
+  if (path.startsWith("/home")) activeTab = "home";
+  else if (path.startsWith("/configure")) activeTab = "configure";
   else if (path.startsWith("/dashboard")) activeTab = "dashboard";
   else if (path.startsWith("/report")) activeTab = "report";
   else if (path.startsWith("/history")) activeTab = "history";
@@ -562,7 +578,7 @@ function AppContent() {
             {isLanding ? (
               <div className="page-content">
                 <LandingPage
-                  onStart={() => navigate("/configure")}
+                  onStart={() => navigate(user ? "/home" : "/home")}
                   onOpenHelp={() => handleOpenHelp()}
                   onOpenGuide={() => setIsGuideOpen(true)}
                   onOpenAuth={handleOpenAuth}
@@ -571,6 +587,20 @@ function AppContent() {
             ) : (
               <div className="page-content">
                 <Routes>
+                  <Route
+                    path="/home"
+                    element={
+                      <ProtectedRoute onOpenAuth={handleOpenAuth}>
+                        <HomeDashboard
+                          onStartNewScan={() => navigate("/configure")}
+                          onViewReport={handleViewReport}
+                          onViewDashboard={handleViewDashboard}
+                          onOpenHelp={handleOpenHelp}
+                          onOpenGuide={() => setIsGuideOpen(true)}
+                        />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/configure"
                     element={
@@ -610,7 +640,7 @@ function AppContent() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<Navigate to="/home" replace />} />
                 </Routes>
               </div>
             )}
@@ -633,7 +663,7 @@ function AppContent() {
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
-        onSuccess={() => navigate("/configure")}
+        onSuccess={() => navigate("/home")}
         defaultMode={authMode}
       />
 
