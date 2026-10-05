@@ -12,21 +12,16 @@ import {
   Activity,
   FileText,
   History,
-  Zap,
   Cpu,
   BookOpen,
   HelpCircle,
   ArrowRight,
   Clock,
   Sparkles,
-  Server,
   Cloud,
   Monitor,
-  Code2,
   Bot,
-  CheckCircle2,
   AlertTriangle,
-  Lock,
 } from "lucide-react";
 
 interface Props {
@@ -99,90 +94,97 @@ export default function HomeDashboard({
       ? "Good afternoon"
       : "Good evening";
 
-  const displayName = user?.full_name || (user?.email ? user.email.split("@")[0] : "Security Auditor");
+  const displayName =
+    user?.full_name || (user?.email ? user.email.split("@")[0] : "Security Auditor");
 
   return (
-    <div className="home-dashboard" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div
+      className="home-dashboard"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+        maxHeight: "calc(100vh - 100px)",
+      }}
+    >
       {/* ── Top Hero Greeting & Action Header ── */}
       <div
         style={{
           background: "linear-gradient(135deg, var(--surface) 0%, var(--surface-elevated) 100%)",
           border: "1px solid var(--border)",
           borderRadius: "var(--r-xl)",
-          padding: "24px 28px",
+          padding: "16px 22px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: 16,
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-          position: "relative",
-          overflow: "hidden",
+          gap: 12,
+          boxShadow: "0 2px 12px rgba(0, 0, 0, 0.06)",
         }}
       >
-        <div style={{ position: "relative", zIndex: 2 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <span
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 5,
-                padding: "3px 10px",
-                borderRadius: 20,
+                padding: "2px 8px",
+                borderRadius: 14,
                 background: "rgba(249, 115, 22, 0.12)",
                 border: "1px solid rgba(249, 115, 22, 0.25)",
                 color: "var(--accent)",
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: 600,
                 letterSpacing: "0.04em",
                 textTransform: "uppercase",
               }}
             >
-              <Sparkles size={12} /> RedTeam Ops Center
+              <Sparkles size={11} /> RedTeam Ops Center
             </span>
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>• Engine v3.2</span>
+            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>• 9 OWASP LLM Vectors Active</span>
           </div>
 
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: "var(--text)" }}>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "var(--text)" }}>
             {greeting}, {displayName}
           </h1>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--muted)", maxWidth: 580 }}>
-            Automated adversarial stress testing, prompt injection auditing, and OWASP LLM security compliance for your AI models and agents.
+          <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)", maxWidth: 540 }}>
+            Automated adversarial stress testing, prompt injection auditing, and OWASP security compliance.
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 2 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             onClick={onOpenGuide}
-            style={{ gap: 6, padding: "9px 14px", fontSize: 13 }}
+            style={{ gap: 6, padding: "8px 12px", fontSize: 12.5 }}
           >
-            <BookOpen size={14} />
+            <BookOpen size={13} />
             <span>Guide</span>
           </button>
 
           <button
-            className="btn btn-primary"
+            className="btn btn-primary btn-sm"
             onClick={onStartNewScan}
             style={{
-              gap: 8,
-              padding: "10px 18px",
-              fontSize: 13,
+              gap: 6,
+              padding: "8px 16px",
+              fontSize: 12.5,
               fontWeight: 600,
-              boxShadow: "0 0 16px rgba(249, 115, 22, 0.35)",
+              boxShadow: "0 0 12px rgba(249, 115, 22, 0.3)",
             }}
           >
-            <Plus size={15} strokeWidth={2.2} />
+            <Plus size={14} strokeWidth={2.2} />
             <span>Launch New Scan</span>
           </button>
         </div>
       </div>
 
-      {/* ── Live Operational Status Strip ── */}
+      {/* ── Key Performance Metrics (Compact 4-Card Strip) ── */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gap: 12,
         }}
       >
@@ -191,119 +193,24 @@ export default function HomeDashboard({
             background: "var(--surface)",
             border: "1px solid var(--border)",
             borderRadius: "var(--r-lg)",
-            padding: "10px 14px",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: "#10b981",
-              boxShadow: "0 0 8px #10b981",
-            }}
-          />
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 500 }}>Scanner Engine</span>
-            <span style={{ fontSize: 12, color: "var(--text)", fontWeight: 600 }}>Active & Calibrated</span>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--r-lg)",
-            padding: "10px 14px",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <div style={{ color: "var(--accent)", display: "flex" }}>
-            <Zap size={14} />
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 500 }}>Attack Taxonomy</span>
-            <span style={{ fontSize: 12, color: "var(--text)", fontWeight: 600 }}>9 OWASP LLM Vectors</span>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--r-lg)",
-            padding: "10px 14px",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <div style={{ color: "#3b82f6", display: "flex" }}>
-            <Server size={14} />
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 500 }}>Execution Target</span>
-            <span style={{ fontSize: 12, color: "var(--text)", fontWeight: 600 }}>Cloud & Local Endpoints</span>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--r-lg)",
-            padding: "10px 14px",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <div style={{ color: "#10b981", display: "flex" }}>
-            <Lock size={14} />
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 500 }}>Credentials Privacy</span>
-            <span style={{ fontSize: 12, color: "var(--text)", fontWeight: 600 }}>In-Memory Zero Persistence</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Key Performance Metrics ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 14,
-        }}
-      >
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--r-xl)",
-            padding: "18px 20px",
+            padding: "12px 16px",
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 4,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Total Audits Run
             </span>
-            <History size={16} className="text-muted" />
+            <History size={14} className="text-muted" />
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 26, fontWeight: 700, color: "var(--text)" }}>{totalScans}</span>
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>scans total</span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>{totalScans}</span>
+            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>scans</span>
           </div>
-          <span style={{ fontSize: 11.5, color: "var(--muted)" }}>
-            {completedRuns.length} completed audits recorded
+          <span style={{ fontSize: 11, color: "var(--muted)" }}>
+            {completedRuns.length} completed audits
           </span>
         </div>
 
@@ -311,33 +218,33 @@ export default function HomeDashboard({
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",
-            borderRadius: "var(--r-xl)",
-            padding: "18px 20px",
+            borderRadius: "var(--r-lg)",
+            padding: "12px 16px",
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 4,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Average ASR
             </span>
-            <ShieldAlert size={16} style={{ color: avgAsr > 30 ? "var(--critical)" : "var(--accent)" }} />
+            <ShieldAlert size={14} style={{ color: avgAsr > 30 ? "var(--critical)" : "var(--accent)" }} />
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
             <span
               style={{
-                fontSize: 26,
+                fontSize: 22,
                 fontWeight: 700,
                 color: avgAsr > 40 ? "var(--critical)" : avgAsr > 20 ? "var(--accent)" : "#10b981",
               }}
             >
               {avgAsr}%
             </span>
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>bypass rate</span>
+            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>bypass rate</span>
           </div>
-          <span style={{ fontSize: 11.5, color: "var(--muted)" }}>
-            {avgAsr === 0 ? "No vulnerabilities breached" : "Attack success rate across runs"}
+          <span style={{ fontSize: 11, color: "var(--muted)" }}>
+            {avgAsr === 0 ? "No vulnerabilities breached" : "Attack success rate"}
           </span>
         </div>
 
@@ -345,27 +252,27 @@ export default function HomeDashboard({
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",
-            borderRadius: "var(--r-xl)",
-            padding: "18px 20px",
+            borderRadius: "var(--r-lg)",
+            padding: "12px 16px",
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 4,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              Total Probes Fired
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              Probes Evaluated
             </span>
-            <Activity size={16} className="text-muted" />
+            <Activity size={14} className="text-muted" />
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 26, fontWeight: 700, color: "var(--text)" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>
               {totalProbesEvaluated}
             </span>
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>payloads</span>
+            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>payloads</span>
           </div>
-          <span style={{ fontSize: 11.5, color: "var(--muted)" }}>
-            Multi-turn adversarial vectors audited
+          <span style={{ fontSize: 11, color: "var(--muted)" }}>
+            Adversarial vectors tested
           </span>
         </div>
 
@@ -373,23 +280,23 @@ export default function HomeDashboard({
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",
-            borderRadius: "var(--r-xl)",
-            padding: "18px 20px",
+            borderRadius: "var(--r-lg)",
+            padding: "12px 16px",
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 4,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              Latest Target Audited
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              Latest Target
             </span>
-            <Cpu size={16} className="text-muted" />
+            <Cpu size={14} className="text-muted" />
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
             <span
               style={{
-                fontSize: 16,
+                fontSize: 14.5,
                 fontWeight: 700,
                 color: "var(--accent)",
                 overflow: "hidden",
@@ -401,7 +308,7 @@ export default function HomeDashboard({
               {lastCompletedRun?.target_model || "No audits yet"}
             </span>
           </div>
-          <span style={{ fontSize: 11.5, color: "var(--muted)" }}>
+          <span style={{ fontSize: 11, color: "var(--muted)" }}>
             {lastCompletedRun
               ? `Audited ${new Date(lastCompletedRun.started_at).toLocaleDateString()}`
               : "Ready for initial scan"}
@@ -410,9 +317,17 @@ export default function HomeDashboard({
       </div>
 
       {/* ── Main Two-Column Content Grid ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20 }}>
-        {/* ── Left: Recent Scans or Getting Started Onboarding ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.55fr 1fr",
+          gap: 14,
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        {/* ── Left Column: Recent Scans or Getting Started Onboarding ── */}
+        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
           {runs.length === 0 && !loading ? (
             /* Onboarding Walkthrough Card when 0 scans */
             <div
@@ -420,17 +335,18 @@ export default function HomeDashboard({
                 background: "var(--surface)",
                 border: "1px solid var(--border)",
                 borderRadius: "var(--r-xl)",
-                padding: "24px 26px",
+                padding: "20px 22px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 18,
+                gap: 12,
+                height: "100%",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div
                   style={{
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                     borderRadius: "50%",
                     background: "rgba(249, 115, 22, 0.15)",
                     display: "flex",
@@ -439,34 +355,34 @@ export default function HomeDashboard({
                     color: "var(--accent)",
                   }}
                 >
-                  <Shield size={18} strokeWidth={2.2} />
+                  <Shield size={16} strokeWidth={2.2} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>
+                  <h3 style={{ margin: 0, fontSize: 14.5, fontWeight: 700, color: "var(--text)" }}>
                     Quick Start: 3 Steps to Audit Your AI Target
                   </h3>
-                  <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "var(--muted)" }}>
-                    You haven't run any security scans yet. Follow these steps to audit your model:
+                  <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "var(--muted)" }}>
+                    No security scans run yet. Follow these 3 simple steps:
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1, justifyContent: "center" }}>
                 <div
                   style={{
                     background: "var(--bg-secondary)",
                     border: "1px solid var(--border)",
-                    borderRadius: "var(--r-lg)",
-                    padding: "12px 16px",
+                    borderRadius: "var(--r-md)",
+                    padding: "9px 13px",
                     display: "flex",
-                    alignItems: "flex-start",
-                    gap: 12,
+                    alignItems: "center",
+                    gap: 10,
                   }}
                 >
                   <div
                     style={{
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       borderRadius: "50%",
                       background: "var(--surface)",
                       border: "1px solid var(--border)",
@@ -474,7 +390,7 @@ export default function HomeDashboard({
                       alignItems: "center",
                       justifyContent: "center",
                       fontWeight: 700,
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "var(--accent)",
                       flexShrink: 0,
                     }}
@@ -482,11 +398,11 @@ export default function HomeDashboard({
                     1
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
-                      Choose your AI Target & Endpoint
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>
+                      Choose AI Target & Endpoint
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                      Point to OpenAI cloud API, local Ollama (`http://localhost:11434/v1`), LM Studio, or your local backend app.
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                      Point to OpenAI API, local Ollama (`:11434`), LM Studio, or local backend app.
                     </div>
                   </div>
                 </div>
@@ -495,17 +411,17 @@ export default function HomeDashboard({
                   style={{
                     background: "var(--bg-secondary)",
                     border: "1px solid var(--border)",
-                    borderRadius: "var(--r-lg)",
-                    padding: "12px 16px",
+                    borderRadius: "var(--r-md)",
+                    padding: "9px 13px",
                     display: "flex",
-                    alignItems: "flex-start",
-                    gap: 12,
+                    alignItems: "center",
+                    gap: 10,
                   }}
                 >
                   <div
                     style={{
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       borderRadius: "50%",
                       background: "var(--surface)",
                       border: "1px solid var(--border)",
@@ -513,7 +429,7 @@ export default function HomeDashboard({
                       alignItems: "center",
                       justifyContent: "center",
                       fontWeight: 700,
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "var(--accent)",
                       flexShrink: 0,
                     }}
@@ -521,11 +437,11 @@ export default function HomeDashboard({
                     2
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
-                      Select Threat Vectors & Scan Intensity
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>
+                      Select Threat Vectors & Intensity
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                      Pick from 9 OWASP LLM categories (Prompt Injection, Jailbreaks, PII Leaks, etc.) and set probe density.
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                      Pick from 9 OWASP LLM categories (Prompt Injection, Jailbreaks, PII Leaks, etc.).
                     </div>
                   </div>
                 </div>
@@ -534,17 +450,17 @@ export default function HomeDashboard({
                   style={{
                     background: "var(--bg-secondary)",
                     border: "1px solid var(--border)",
-                    borderRadius: "var(--r-lg)",
-                    padding: "12px 16px",
+                    borderRadius: "var(--r-md)",
+                    padding: "9px 13px",
                     display: "flex",
-                    alignItems: "flex-start",
-                    gap: 12,
+                    alignItems: "center",
+                    gap: 10,
                   }}
                 >
                   <div
                     style={{
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       borderRadius: "50%",
                       background: "var(--surface)",
                       border: "1px solid var(--border)",
@@ -552,7 +468,7 @@ export default function HomeDashboard({
                       alignItems: "center",
                       justifyContent: "center",
                       fontWeight: 700,
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "var(--accent)",
                       flexShrink: 0,
                     }}
@@ -560,23 +476,23 @@ export default function HomeDashboard({
                     3
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>
                       Launch Live Audit & Export Compliance PDF
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                      Stream attack payloads live in real time and download a full vulnerability certificate with remediation steps.
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                      Stream live attack payloads and generate a downloadable security assessment PDF.
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-sm"
                   onClick={onStartNewScan}
-                  style={{ gap: 8, padding: "10px 20px" }}
+                  style={{ gap: 6, padding: "8px 16px", fontSize: 12.5 }}
                 >
-                  <Play size={14} fill="currentColor" />
+                  <Play size={13} fill="currentColor" />
                   <span>Start Your First Security Audit</span>
                 </button>
               </div>
@@ -588,39 +504,50 @@ export default function HomeDashboard({
                 background: "var(--surface)",
                 border: "1px solid var(--border)",
                 borderRadius: "var(--r-xl)",
-                padding: "20px 22px",
+                padding: "16px 18px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 14,
+                gap: 10,
+                height: "100%",
+                minHeight: 0,
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--text)" }}>
+                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
                     Recent Security Audits
                   </h3>
-                  <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
+                  <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "var(--muted)" }}>
                     Latest adversarial scans executed against your targets
                   </p>
                 </div>
 
                 <button
-                  className="btn btn-ghost btn-sm"
+                  className="btn btn-ghost btn-xs"
                   onClick={() => navigate("/history")}
-                  style={{ gap: 4, color: "var(--accent)", fontSize: 12 }}
+                  style={{ gap: 4, color: "var(--accent)", fontSize: 11.5 }}
                 >
-                  <span>View Full History</span>
-                  <ArrowRight size={13} />
+                  <span>Full History</span>
+                  <ArrowRight size={12} />
                 </button>
               </div>
 
               {loading ? (
-                <div style={{ padding: 30, textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
+                <div style={{ padding: 24, textAlign: "center", color: "var(--muted)", fontSize: 12 }}>
                   Loading recent scans…
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {runs.slice(0, 5).map((run) => {
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                    overflowY: "auto",
+                    flex: 1,
+                    paddingRight: 2,
+                  }}
+                >
+                  {runs.slice(0, 4).map((run) => {
                     const asrPct = Math.round(run.overall_asr * 100);
                     const isPassed = asrPct === 0;
                     const isHighRisk = asrPct > 35;
@@ -633,21 +560,20 @@ export default function HomeDashboard({
                         style={{
                           background: "var(--bg-secondary)",
                           border: "1px solid var(--border)",
-                          borderRadius: "var(--r-lg)",
-                          padding: "12px 16px",
+                          borderRadius: "var(--r-md)",
+                          padding: "9px 13px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          gap: 12,
-                          transition: "border-color 0.15s ease",
+                          gap: 10,
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
                           <div
                             style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 8,
+                              width: 28,
+                              height: 28,
+                              borderRadius: 6,
                               background: isPassed
                                 ? "rgba(16, 185, 129, 0.12)"
                                 : isHighRisk
@@ -665,19 +591,19 @@ export default function HomeDashboard({
                             }}
                           >
                             {isPassed ? (
-                              <ShieldCheck size={16} />
+                              <ShieldCheck size={14} />
                             ) : isHighRisk ? (
-                              <ShieldAlert size={16} />
+                              <ShieldAlert size={14} />
                             ) : (
-                              <AlertTriangle size={16} />
+                              <AlertTriangle size={14} />
                             )}
                           </div>
 
                           <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                               <span
                                 style={{
-                                  fontSize: 13,
+                                  fontSize: 12.5,
                                   fontWeight: 600,
                                   color: "var(--text)",
                                   overflow: "hidden",
@@ -695,24 +621,24 @@ export default function HomeDashboard({
                                     ? "info"
                                     : "warn"
                                 }`}
-                                style={{ fontSize: 10.5 }}
+                                style={{ fontSize: 9.5, padding: "1px 6px" }}
                               >
                                 {run.status}
                               </span>
                             </div>
 
-                            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 3 }}>
-                              <span style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 4 }}>
-                                <Clock size={11} /> {new Date(run.started_at).toLocaleDateString()}
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+                              <span style={{ fontSize: 10.5, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3 }}>
+                                <Clock size={10} /> {new Date(run.started_at).toLocaleDateString()}
                               </span>
-                              <span style={{ fontSize: 11, color: "var(--muted)" }}>•</span>
-                              <span style={{ fontSize: 11, color: "var(--muted)" }}>
+                              <span style={{ fontSize: 10.5, color: "var(--muted)" }}>•</span>
+                              <span style={{ fontSize: 10.5, color: "var(--muted)" }}>
                                 {runProbes} probes
                               </span>
-                              <span style={{ fontSize: 11, color: "var(--muted)" }}>•</span>
+                              <span style={{ fontSize: 10.5, color: "var(--muted)" }}>•</span>
                               <span
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: 10.5,
                                   fontWeight: 600,
                                   color: isPassed
                                     ? "#10b981"
@@ -727,14 +653,14 @@ export default function HomeDashboard({
                           </div>
                         </div>
 
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
                           <button
                             className="btn btn-secondary btn-xs"
                             onClick={() => onViewDashboard(run.run_id)}
                             title="Open live telemetry dashboard"
-                            style={{ gap: 4 }}
+                            style={{ gap: 3, padding: "3px 8px", fontSize: 11 }}
                           >
-                            <Activity size={12} />
+                            <Activity size={11} />
                             <span>Live</span>
                           </button>
                           {run.status === "completed" && (
@@ -742,9 +668,9 @@ export default function HomeDashboard({
                               className="btn btn-ghost btn-xs"
                               onClick={() => onViewReport(run.run_id)}
                               title="View full vulnerability assessment report"
-                              style={{ gap: 4, color: "var(--accent)" }}
+                              style={{ gap: 3, padding: "3px 8px", fontSize: 11, color: "var(--accent)" }}
                             >
-                              <FileText size={12} />
+                              <FileText size={11} />
                               <span>Report</span>
                             </button>
                           )}
@@ -759,47 +685,47 @@ export default function HomeDashboard({
         </div>
 
         {/* ── Right Column: Target Quick Presets & KB Shortcuts ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
           {/* Quick Target Presets Card */}
           <div
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border)",
               borderRadius: "var(--r-xl)",
-              padding: "20px",
+              padding: "16px",
               display: "flex",
               flexDirection: "column",
-              gap: 12,
+              gap: 8,
             }}
           >
             <div>
-              <h3 style={{ margin: 0, fontSize: 14.5, fontWeight: 700, color: "var(--text)" }}>
+              <h3 style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: "var(--text)" }}>
                 Target Architecture Presets
               </h3>
-              <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
-                Start a customized scan for your deployment type
+              <p style={{ margin: "1px 0 0", fontSize: 11, color: "var(--muted)" }}>
+                Quick start for your deployment environment
               </p>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={onStartNewScan}
                 style={{
                   justifyContent: "flex-start",
-                  padding: "10px 12px",
-                  gap: 10,
+                  padding: "8px 10px",
+                  gap: 8,
                   textAlign: "left",
                 }}
               >
-                <Cloud size={16} className="text-accent" />
+                <Cloud size={14} className="text-accent" />
                 <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)" }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text)" }}>
                     Cloud API (OpenAI / Groq)
                   </span>
-                  <span style={{ fontSize: 10.5, color: "var(--muted)" }}>
-                    Test public endpoint with API key
+                  <span style={{ fontSize: 10, color: "var(--muted)" }}>
+                    Public OpenAI-compatible endpoint
                   </span>
                 </div>
               </button>
@@ -810,18 +736,18 @@ export default function HomeDashboard({
                 onClick={onStartNewScan}
                 style={{
                   justifyContent: "flex-start",
-                  padding: "10px 12px",
-                  gap: 10,
+                  padding: "8px 10px",
+                  gap: 8,
                   textAlign: "left",
                 }}
               >
-                <Monitor size={16} className="text-accent" />
+                <Monitor size={14} className="text-accent" />
                 <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)" }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text)" }}>
                     Local LLM (Ollama / vLLM)
                   </span>
-                  <span style={{ fontSize: 10.5, color: "var(--muted)" }}>
-                    Direct localhost model audit
+                  <span style={{ fontSize: 10, color: "var(--muted)" }}>
+                    Direct localhost model audit (`:11434`)
                   </span>
                 </div>
               </button>
@@ -832,17 +758,17 @@ export default function HomeDashboard({
                 onClick={onStartNewScan}
                 style={{
                   justifyContent: "flex-start",
-                  padding: "10px 12px",
-                  gap: 10,
+                  padding: "8px 10px",
+                  gap: 8,
                   textAlign: "left",
                 }}
               >
-                <Bot size={16} className="text-accent" />
+                <Bot size={14} className="text-accent" />
                 <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)" }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text)" }}>
                     Firewalled AI Agent (Relay)
                   </span>
-                  <span style={{ fontSize: 10.5, color: "var(--muted)" }}>
+                  <span style={{ fontSize: 10, color: "var(--muted)" }}>
                     Private network agent via WebSocket
                   </span>
                 </div>
@@ -856,25 +782,25 @@ export default function HomeDashboard({
               background: "var(--surface)",
               border: "1px solid var(--border)",
               borderRadius: "var(--r-xl)",
-              padding: "20px",
+              padding: "16px",
               display: "flex",
               flexDirection: "column",
-              gap: 12,
+              gap: 8,
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: 14.5, fontWeight: 700, color: "var(--text)" }}>
+                <h3 style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: "var(--text)" }}>
                   Attack Vectors & Knowledge Base
                 </h3>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
-                  Explore OWASP LLM 2025 definitions
+                <p style={{ margin: "1px 0 0", fontSize: 11, color: "var(--muted)" }}>
+                  OWASP LLM 2025 definitions & mitigations
                 </p>
               </div>
-              <HelpCircle size={15} className="text-muted" />
+              <HelpCircle size={14} className="text-muted" />
             </div>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
               {Object.entries(CATEGORY_NAMES).map(([key, label]) => (
                 <button
                   key={key}
@@ -883,9 +809,9 @@ export default function HomeDashboard({
                   style={{
                     background: "var(--bg-secondary)",
                     border: "1px solid var(--border)",
-                    borderRadius: 14,
-                    padding: "4px 9px",
-                    fontSize: 11,
+                    borderRadius: 12,
+                    padding: "3px 8px",
+                    fontSize: 10.5,
                     fontWeight: 500,
                     color: "var(--text)",
                     cursor: "pointer",
