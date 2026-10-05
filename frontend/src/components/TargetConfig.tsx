@@ -319,8 +319,8 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                   <Target size={14} strokeWidth={1.8} />
                 </div>
                 <div>
-                  <div className="card-title">Step 1: Target Application</div>
-                  <div className="card-subtitle">Where security scan probes will be sent</div>
+                  <div className="card-title">Step 1: Target Application Setup</div>
+                  <div className="card-subtitle">Configure the target AI model, local application, or agent endpoint to test</div>
                 </div>
               </div>
               <div className="config-section-body">
@@ -332,9 +332,11 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                     type="text"
                     value={targetEndpoint}
                     onChange={(e) => setTargetEndpoint(e.target.value)}
-                    placeholder="http://localhost:8001/v1"
+                    placeholder="http://localhost:8001/v1 (or https://api.openai.com/v1)"
                   />
-                  <span className="field-hint">OpenAI-compatible chat completions API endpoint</span>
+                  <span className="field-hint">
+                    OpenAI endpoint URL you wish to test. Supports OpenAI cloud APIs, local LLMs (Ollama http://localhost:11434/v1, LM Studio, vLLM), AI agents, or local project endpoints.
+                  </span>
                 </div>
 
                 <div
@@ -355,7 +357,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                       onChange={(e) => setTargetApiKey(e.target.value)}
                       placeholder="Bearer token or API key"
                     />
-                    <span className="field-hint">Processed in-memory; fallback loaded from .env</span>
+                    <span className="field-hint">Processed in-memory; fallback loaded from .env if omitted</span>
                   </div>
 
                   <div>
@@ -368,12 +370,12 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
                       onChange={(e) => setTargetModel(e.target.value)}
                       placeholder="target-app"
                     />
-                    <span className="field-hint">Defaults to "target-app" if left blank</span>
+                    <span className="field-hint">Model ID (e.g. gpt-4o, llama3:8b, mistral). Defaults to "target-app"</span>
                   </div>
                 </div>
 
                 <div className="notice-banner" style={{ marginTop: 8, fontSize: 12 }}>
-                  🔒 Credentials are never logged or stored to disk.
+                  💡 Target endpoints can be cloud APIs, local LLM servers (Ollama, LM Studio, vLLM), local projects, or custom AI agents. Credentials are never logged or stored to disk.
                 </div>
 
                 {/* Step controls */}
