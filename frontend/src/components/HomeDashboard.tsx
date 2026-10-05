@@ -123,32 +123,10 @@ export default function HomeDashboard({
         }}
       >
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "2px 8px",
-                borderRadius: 14,
-                background: "rgba(249, 115, 22, 0.12)",
-                border: "1px solid rgba(249, 115, 22, 0.25)",
-                color: "var(--accent)",
-                fontSize: 10.5,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-              }}
-            >
-              <Sparkles size={11} /> RedTeam Ops Center
-            </span>
-            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>• 9 OWASP LLM Vectors Active</span>
-          </div>
-
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "var(--text)" }}>
+          <h1 style={{ margin: 0, fontSize: 21, fontWeight: 700, color: "var(--text)" }}>
             {greeting}, {displayName}
           </h1>
-          <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)", maxWidth: 540 }}>
+          <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "var(--muted)", maxWidth: 560 }}>
             Automated adversarial stress testing, prompt injection auditing, and OWASP security compliance.
           </p>
         </div>
@@ -224,10 +202,11 @@ export default function HomeDashboard({
             flexDirection: "column",
             gap: 4,
           }}
+          title="Attack Success Rate (ASR) measures the percentage of adversarial probes that successfully bypassed target guardrails. Lower is safer."
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              Average ASR
+              Vulnerability Bypass Rate (ASR)
             </span>
             <ShieldAlert size={14} style={{ color: avgAsr > 30 ? "var(--critical)" : "var(--accent)" }} />
           </div>
@@ -241,10 +220,12 @@ export default function HomeDashboard({
             >
               {avgAsr}%
             </span>
-            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>bypass rate</span>
+            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>
+              {avgAsr === 0 ? "secure" : "exploited"}
+            </span>
           </div>
           <span style={{ fontSize: 11, color: "var(--muted)" }}>
-            {avgAsr === 0 ? "No vulnerabilities breached" : "Attack success rate"}
+            {avgAsr === 0 ? "0% breached (Target protected)" : "Attack Success Rate (lower is safer)"}
           </span>
         </div>
 
