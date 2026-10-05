@@ -341,7 +341,7 @@ export default function TargetConfig({ onRunStarted, onOpenHelp }: Props) {
   const totalCases = selectedCategories.size * activeIntensity.cases + customCases.length;
 
   return (
-    <div style={{ maxWidth: 940, margin: "0 auto" }}>
+    <div style={{ width: "100%" }}>
       {/* ── Light Progress Navigation Stepper ── */}
       <div className="wizard-stepper-bare">
         {WIZARD_STEPS.map((s, idx) => {
