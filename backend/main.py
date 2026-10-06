@@ -342,7 +342,7 @@ async def _require_bearer_token(request, call_next):
     settings = get_settings()
     if settings.backend_api_key is None:
         return await call_next(request)
-    if request.url.path == "/health" or request.url.path.startswith("/auth/") or request.method == "OPTIONS":
+    if request.url.path == "/health" or request.url.path == "/api/download-ui" or request.url.path.startswith("/auth/") or request.method == "OPTIONS":
         return await call_next(request)
     # WebSocket auth is handled separately by _check_ws_token inside
     # agent_connect/run_progress_stream — this HTTP-only middleware must
@@ -359,6 +359,19 @@ async def _require_bearer_token(request, call_next):
 
         return JSONResponse(status_code=401, content={"detail": "Missing or invalid Authorization bearer token."})
     return await call_next(request)
+
+
+@app.get("/api/download-ui")
+async def download_ui_zip():
+    from fastapi.responses import FileResponse
+    zip_path = Path(__file__).resolve().parent.parent / "frontend-ui-ux.zip"
+    if not zip_path.exists():
+        raise HTTPException(status_code=404, detail="UI zip file not found")
+    return FileResponse(
+        path=str(zip_path),
+        media_type="application/zip",
+        filename="frontend-ui-ux.zip"
+    )
 
 
 def _check_ws_token(websocket: WebSocket) -> bool:
