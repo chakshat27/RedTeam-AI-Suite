@@ -68,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const data = await res.json();
     localStorage.setItem("rts_auth_token", data.token);
+    sessionStorage.setItem("rts_auth_mode", "login");
     setToken(data.token);
     setUser(data.user);
   };
@@ -84,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const data = await res.json();
     localStorage.setItem("rts_auth_token", data.token);
+    sessionStorage.setItem("rts_auth_mode", "signup");
     setToken(data.token);
     setUser(data.user);
   };

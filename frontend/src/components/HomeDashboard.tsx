@@ -86,13 +86,8 @@ export default function HomeDashboard({
   const lastCompletedRun = completedRuns[0];
 
   // Greeting
-  const currentHour = new Date().getHours();
-  const greeting =
-    currentHour < 12
-      ? "Good morning"
-      : currentHour < 18
-      ? "Good afternoon"
-      : "Good evening";
+  const authMode = sessionStorage.getItem("rts_auth_mode");
+  const greeting = authMode === "signup" ? "Welcome" : "Welcome back";
 
   const displayName =
     user?.full_name || (user?.email ? user.email.split("@")[0] : "Security Auditor");
@@ -126,9 +121,6 @@ export default function HomeDashboard({
           <h1 style={{ margin: 0, fontSize: 21, fontWeight: 700, color: "var(--text)" }}>
             {greeting}, {displayName}
           </h1>
-          <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "var(--muted)", maxWidth: 560 }}>
-            Automated adversarial stress testing, prompt injection auditing, and OWASP security compliance.
-          </p>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -187,9 +179,6 @@ export default function HomeDashboard({
             <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>{totalScans}</span>
             <span style={{ fontSize: 11.5, color: "var(--muted)" }}>scans</span>
           </div>
-          <span style={{ fontSize: 11, color: "var(--muted)" }}>
-            {completedRuns.length} completed audits
-          </span>
         </div>
 
         <div
@@ -224,9 +213,6 @@ export default function HomeDashboard({
               {avgAsr === 0 ? "secure" : "exploited"}
             </span>
           </div>
-          <span style={{ fontSize: 11, color: "var(--muted)" }}>
-            {avgAsr === 0 ? "0% breached (Target protected)" : "Attack Success Rate (lower is safer)"}
-          </span>
         </div>
 
         <div
@@ -252,9 +238,6 @@ export default function HomeDashboard({
             </span>
             <span style={{ fontSize: 11.5, color: "var(--muted)" }}>payloads</span>
           </div>
-          <span style={{ fontSize: 11, color: "var(--muted)" }}>
-            Adversarial vectors tested
-          </span>
         </div>
 
         <div
@@ -289,11 +272,6 @@ export default function HomeDashboard({
               {lastCompletedRun?.target_model || "No audits yet"}
             </span>
           </div>
-          <span style={{ fontSize: 11, color: "var(--muted)" }}>
-            {lastCompletedRun
-              ? `Audited ${new Date(lastCompletedRun.started_at).toLocaleDateString()}`
-              : "Ready for initial scan"}
-          </span>
         </div>
       </div>
 
