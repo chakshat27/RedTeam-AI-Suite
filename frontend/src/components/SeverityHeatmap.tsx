@@ -1,4 +1,5 @@
 import type { VulnerabilityReport, Severity } from "../types";
+import { formatCat } from "../types";
 
 interface Props {
   report: VulnerabilityReport;
@@ -18,10 +19,6 @@ const CAT_ICONS: Record<string, string> = {
   excessive_agency: "🤖",
 };
 
-function formatCat(name: string) {
-  return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 export default function SeverityHeatmap({ report }: Props) {
   // Build category → severity lookup
   const categorySeverity = new Map<string, Severity>();
@@ -37,23 +34,7 @@ export default function SeverityHeatmap({ report }: Props) {
   }
 
   if (allCategoriesInReport.size === 0) {
-    return (
-      <div
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: 14,
-          padding: "20px",
-        }}
-      >
-        <div className="section-label" style={{ marginBottom: 8 }}>
-          Severity Heatmap
-        </div>
-        <p style={{ fontSize: 13, color: "var(--safe)", margin: 0 }}>
-          ✓ No vulnerabilities found across all tested categories.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (

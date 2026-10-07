@@ -1,16 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { RedTeamRun, RunProgressEvent } from "../types";
+import { formatCat } from "../types";
 import { api } from "../api";
 import { CheckCircle2, AlertCircle, Loader2, Terminal } from "lucide-react";
 
 interface Props {
   runId: string;
   onViewReport: () => void;
-}
-
-function formatCat(cat?: string | null) {
-  if (!cat) return "";
-  return cat.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export default function RunDashboard({ runId, onViewReport }: Props) {

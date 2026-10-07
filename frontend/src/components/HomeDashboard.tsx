@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
 import type { RunSummary, AttackCategory } from "../types";
+import { CATEGORY_LABELS } from "../types";
 import {
   Shield,
   ShieldAlert,
@@ -32,17 +33,7 @@ interface Props {
   onOpenGuide: () => void;
 }
 
-const CATEGORY_NAMES: Record<string, string> = {
-  prompt_injection: "Prompt Injection",
-  jailbreak: "Jailbreak Framing",
-  pii_extraction: "PII Extraction",
-  off_topic: "Off-Topic Divert",
-  guardrail_bypass: "Guardrail Bypass",
-  indirect_injection: "Indirect Injection",
-  hallucination: "Hallucination Push",
-  prompt_leakage: "Prompt Leakage",
-  excessive_agency: "Excessive Agency",
-};
+const CATEGORY_NAMES = CATEGORY_LABELS;
 
 export default function HomeDashboard({
   onStartNewScan,

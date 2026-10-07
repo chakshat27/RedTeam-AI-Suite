@@ -17,6 +17,26 @@ export const ALL_CATEGORIES = [
 
 export type AttackCategory = (typeof ALL_CATEGORIES)[number];
 
+export const CATEGORY_LABELS: Record<AttackCategory, string> = {
+  prompt_injection: "Prompt Injection",
+  jailbreak: "Jailbreak",
+  pii_extraction: "PII Extraction",
+  off_topic: "Off-Topic",
+  guardrail_bypass: "Guardrail Bypass",
+  indirect_injection: "Indirect Injection",
+  hallucination: "Hallucination",
+  prompt_leakage: "Prompt Leakage",
+  excessive_agency: "Excessive Agency",
+};
+
+export function formatCat(name?: string | null): string {
+  if (!name) return "";
+  if (name in CATEGORY_LABELS) {
+    return CATEGORY_LABELS[name as AttackCategory];
+  }
+  return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export type Severity = "critical" | "high" | "medium" | "low" | "info";
 
 export type RunStatus = "pending" | "running" | "completed" | "failed";
